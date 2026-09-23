@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #E7ECE6; color: #16231B; -webkit-font-smoothing: antialiased; }
+  a { color: #1E8E43; text-decoration: none; }
+  a:hover { color: #14672F; }
+  .vp::-webkit-scrollbar { width: 0; height: 0; }
+  .rail::-webkit-scrollbar { width: 6px; }
+  .rail::-webkit-scrollbar-thumb { background: #C3CFC6; border-radius: 3px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+  @keyframes blink { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+  .skel { background: linear-gradient(90deg,#EDF1EC 25%,#F6F8F5 50%,#EDF1EC 75%); background-size: 400px 100%; animation: shimmer 1.3s infinite linear; border-radius: 8px; }
+</style>
+</helmet>
+<div style="display:flex; min-height:100vh; width:100%;">
+
+  <!-- ==================== SCREEN RAIL ==================== -->
+  <aside class="rail" style="width:260px; flex:0 0 260px; height:100vh; overflow-y:auto; background:#F3F6F2; border-right:1px solid #DCE4DC; padding:20px 16px; position:sticky; top:0;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+      <img src="assets/selorg-logo.jpg" alt="Selorg" style="width:34px; height:34px; border-radius:16px; object-fit:cover;">
+      <div>
+        <div style="font-size:14px; font-weight:800; letter-spacing:-.2px;">Selorg Picker Pro</div>
+        <div style="font-size:11px; color:#5E6E63;">Workforce app · redesign</div>
+      </div>
+    </div>
+    <div style="font-size:10.5px; font-weight:700; color:#8A9990; text-transform:uppercase; letter-spacing:.6px; margin:0 0 8px;">Auth</div>
+    <sc-for list="{{ railAuth }}" as="item" hint-placeholder-count="2">
+      <button onClick="{{ item.go }}" style="{{ item.style }}"><span>{{ item.label }}</span><span style="{{ item.tagStyle }}">{{ item.tag }}</span></button>
+    </sc-for>
+
+    <div style="font-size:10.5px; font-weight:700; color:#8A9990; text-transform:uppercase; letter-spacing:.6px; margin:16px 0 8px;">Onboarding</div>
+    <sc-for list="{{ railOnboard }}" as="item" hint-placeholder-count="3">
+      <button onClick="{{ item.go }}" style="{{ item.style }}"><span>{{ item.label }}</span><span style="{{ item.tagStyle }}">{{ item.tag }}</span></button>
+    </sc-for>
+
+    <div style="font-size:10.5px; font-weight:700; color:#8A9990; text-transform:uppercase; letter-spacing:.6px; margin:16px 0 8px;">Main tabs</div>
+    <sc-for list="{{ railMain }}" as="item" hint-placeholder-count="4">
+      <button onClick="{{ item.go }}" style="{{ item.style }}"><span>{{ item.label }}</span><span style="{{ item.tagStyle }}">{{ item.tag }}</span></button>
+    </sc-for>
+
+    <div style="font-size:10.5px; font-weight:700; color:#8A9990; text-transform:uppercase; letter-spacing:.6px; margin:16px 0 8px;">Money & support</div>
+    <sc-for list="{{ railMoney }}" as="item" hint-placeholder-count="4">
+      <button onClick="{{ item.go }}" style="{{ item.style }}"><span>{{ item.label }}</span><span style="{{ item.tagStyle }}">{{ item.tag }}</span></button>
+    </sc-for>
+
+    <div style="font-size:10.5px; font-weight:700; color:#8A9990; text-transform:uppercase; letter-spacing:.6px; margin:16px 0 8px;">Profile flows</div>
+    <sc-for list="{{ railProfile }}" as="item" hint-placeholder-count="8">
+      <button onClick="{{ item.go }}" style="{{ item.style }}"><span>{{ item.label }}</span><span style="{{ item.tagStyle }}">{{ item.tag }}</span></button>
+    </sc-for>
+
+  </aside>
+
+  <!-- ==================== STAGE ==================== -->
+  <main style="flex:1; display:flex; align-items:center; justify-content:center; padding:40px 24px; min-height:100vh;">
+    <div style="position:relative; width:392px; height:812px; background:#0E1A12; border-radius:52px; padding:13px; box-shadow:0 40px 90px -30px rgba(14,26,18,.55), inset 0 0 0 2px #23372A;">
+      <div style="position:relative; width:100%; height:100%; background:#F3F6F2; border-radius:40px; overflow:hidden; display:flex; flex-direction:column;">
+
+        <!-- OS status bar -->
+        <div style="flex:0 0 auto; height:46px; display:flex; align-items:center; justify-content:space-between; padding:0 26px 0 30px; font-size:14px; font-weight:700; color:{{ statusInk }}; background:{{ statusBg }}; z-index:30;">
+          <span style="font-variant-numeric:tabular-nums;">9:41</span>
+          <div style="position:absolute; left:50%; top:9px; transform:translateX(-50%); width:104px; height:26px; background:#0E1A12; border-radius:16px;"></div>
+          <span style="display:flex; align-items:center; gap:6px;">
+            <svg width="17" height="12" viewBox="0 0 18 12" fill="none"><rect x="1" y="7" width="3" height="4" rx="1" fill="currentColor"/><rect x="5.5" y="5" width="3" height="6" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="8" rx="1" fill="currentColor"/><rect x="14.5" y="1" width="3" height="10" rx="1" fill="currentColor"/></svg>
+            <svg width="22" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="3" stroke="currentColor" stroke-width="1.3" opacity=".5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx=".75" fill="currentColor"/></svg>
+          </span>
+        </div>
+
+        <!-- offline banner -->
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:0 0 auto; background:#E8A317; color:#3A2A00; font-size:12px; font-weight:700; text-align:center; padding:7px; display:flex; align-items:center; justify-content:center; gap:7px; z-index:25;">
+            <span style="width:7px; height:7px; border-radius:50%; background:#3A2A00; animation:pulse 1.4s infinite;"></span>
+            Offline — 3 actions queued, will sync when back online
+          </div>
+        </sc-if>
+
+        <!-- ============ VIEWPORT ============ -->
+        <div class="vp" style="flex:1; overflow-y:auto; position:relative;">
+
+          <!-- ---------- LOGIN ---------- -->
+          <sc-if value="{{ is.login }}" hint-placeholder-val="{{ true }}">
+            <div style="min-height:100%; display:flex; flex-direction:column; background:#F3F6F2;">
+              <div style="background:#1E8E43; padding:48px 26px 40px; border-radius:0 0 30px 30px; text-align:center; color:#fff;">
+                <div style="width:96px; height:96px; border-radius:24px; overflow:hidden; margin:0 auto 16px; box-shadow:0 10px 26px rgba(0,0,0,.28);">
+                  <img src="assets/selorg-logo.jpg" alt="Selorg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                </div>
+                <div style="font-size:23px; font-weight:800; letter-spacing:-.4px;">Selorg Picker</div>
+                <div style="font-size:14px; opacity:.85; margin-top:4px;">Sign in to your workforce account</div>
+              </div>
+              <div style="padding:24px 22px; flex:1;">
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:20px;">
+                  <div style="font-size:13px; color:#5E6E63; margin-bottom:10px;">Choose login method</div>
+                  <div style="display:flex; gap:6px; background:#EFF3EE; padding:4px; border-radius:12px; margin-bottom:20px;">
+                    <sc-for list="{{ loginTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+                  </div>
+                  <sc-if value="{{ channelMobile }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:13px; font-weight:600; margin-bottom:8px;">Mobile number</div>
+                    <div style="display:flex; gap:8px; margin-bottom:18px;">
+                      <div style="display:flex; align-items:center; gap:6px; padding:0 12px; height:52px; border:1px solid #D8E0D8; border-radius:12px; background:#FAFBF9; font-size:15px; font-weight:600;">🇮🇳 +91</div>
+                      <input value="{{ loginPhoneField.val }}" onChange="{{ loginPhoneField.on }}" inputmode="numeric" maxlength="10" placeholder="10-digit number" style="flex:1; height:52px; border:1.5px solid #D8E0D8; border-radius:12px; background:#fff; padding:0 14px; font-size:16px; font-weight:600; color:#16231B; font-family:inherit; outline:none; box-sizing:border-box;" style-focus="border-color:#1E8E43;">
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ channelEmail }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:13px; font-weight:600; margin-bottom:8px;">Email address</div>
+                    <input value="{{ loginEmailField.val }}" onChange="{{ loginEmailField.on }}" inputmode="email" placeholder="you@example.com" style="width:100%; height:52px; border:1.5px solid #D8E0D8; border-radius:12px; background:#fff; padding:0 14px; font-size:16px; font-weight:600; color:#16231B; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:18px;" style-focus="border-color:#1E8E43;">
+                  </sc-if>
+                  <button onClick="{{ onToggleAgree }}" style="display:flex; gap:10px; align-items:flex-start; margin-bottom:20px; cursor:pointer; border:none; background:none; padding:0; text-align:left; font-family:inherit;">
+                    <span style="{{ agreeBox }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <span style="font-size:12px; color:#5E6E63; line-height:1.5;">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></span>
+                  </button>
+                  <button onClick="{{ onSendOtp }}" style="{{ sendBtnStyle }}">Send OTP</button>
+                </div>
+                <div style="text-align:center; font-size:12px; color:#8A9990; margin-top:18px;">Need help? <a href="#">Contact support</a></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- OTP ---------- -->
+          <sc-if value="{{ is.otp }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;">
+                <button onClick="{{ nav.login }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span style="font-size:17px; font-weight:700;">Verify OTP</span>
+              </div>
+              <div style="padding:32px 22px;">
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:24px 20px;">
+                  <img src="assets/selorg-logo.jpg" alt="Selorg" style="width:60px; height:60px; border-radius:16px; object-fit:cover; display:block; margin:0 auto 14px;">
+                  <div style="text-align:center; font-size:20px; font-weight:800; margin-bottom:8px;">Verify OTP</div>
+                  <div style="text-align:center; font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:26px;">Enter the 4-digit OTP sent to <b style="color:#1E8E43;">{{ otpDest }}</b> via <b style="color:#1E8E43;">{{ otpChannelLabel }}</b>.</div>
+                  <input value="{{ otpField.val }}" onChange="{{ otpField.on }}" inputmode="numeric" maxlength="4" placeholder="––––" style="width:100%; height:66px; border:2px solid #1E8E43; background:#fff; border-radius:14px; text-align:center; font-size:30px; font-weight:800; letter-spacing:18px; color:#16231B; font-family:'JetBrains Mono',monospace; outline:none; box-sizing:border-box; margin-bottom:20px; padding-left:18px;">
+                  <div style="text-align:center; margin-bottom:24px;">
+                    <sc-if value="{{ resendActive }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onResendOtp }}" style="border:none; background:none; color:#1E8E43; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">{{ resendLabel }}</button></sc-if>
+                    <sc-if value="{{ resendWaiting }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px; color:#8A9990;">{{ resendLabel }}</span></sc-if>
+                  </div>
+                  <button onClick="{{ onVerifyOtp }}" style="{{ verifyBtnStyle }}">Verify &amp; Continue</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- ONBOARDING: COMPLETE YOUR PROFILE (WIZARD) ---------- -->
+          <sc-if value="{{ is.onboarding }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;">
+                <button onClick="{{ onObBack }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span style="font-size:17px; font-weight:700;">Complete your profile</span>
+              </div>
+              <div style="padding:20px 22px 28px;">
+                <!-- step tracker -->
+                <div style="display:flex; align-items:center; margin-bottom:22px;">
+                  <sc-for list="{{ onboardSteps }}" as="st" hint-placeholder-count="5">
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative;">
+                      <div style="{{ st.dot }}">{{ st.n }}</div>
+                      <div style="font-size:9.5px; font-weight:600; color:{{ st.col }}; margin-top:5px; text-align:center;">{{ st.label }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <!-- STEP 1: PROFILE -->
+                <sc-if value="{{ ob1 }}" hint-placeholder-val="{{ true }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:20px;">
+                    <div style="text-align:center; margin-bottom:20px;">
+                      <button onClick="{{ obUpload }}" style="border:none; background:none; cursor:pointer; font-family:inherit;">
+                        <div style="width:88px; height:88px; border-radius:50%; background:#EAF5EC; border:2px dashed #9AC7A6; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#1E8E43" stroke-width="2"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="#1E8E43" stroke-width="2" stroke-linecap="round"/></svg></div>
+                        <div style="font-size:12.5px; color:#1E8E43; font-weight:700;">Upload profile photo</div>
+                      </button>
+                    </div>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Full name</div><input value="{{ obf.name.val }}" onChange="{{ obf.name.on }}" placeholder="Enter your full name" style="{{ obf.name.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obf.name.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obf.name.err }}</div></sc-if></div>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Date of birth</div><input value="{{ obf.dob.val }}" onChange="{{ obf.dob.on }}" placeholder="DD / MM / YYYY" style="{{ obf.dob.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obf.dob.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obf.dob.err }}</div></sc-if></div>
+                    <div><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Gender</div><div style="display:flex; gap:8px;"><sc-for list="{{ obGenderOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></div>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 2: LOCATION TYPE -->
+                <sc-if value="{{ ob2 }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:20px;">
+                    <div style="font-size:15px; font-weight:800; margin-bottom:2px;">Where will you work?</div>
+                    <div style="font-size:12.5px; color:#5E6E63; margin-bottom:18px;">Pick the type of facility you'll be based at.</div>
+                    <div style="display:flex; gap:10px;"><sc-for list="{{ obLocTypeOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+                    <div style="font-size:12px; color:#8A9990; line-height:1.6; margin-top:14px;">Darkstores handle quick-commerce orders; warehouses handle bulk fulfilment. Your manager confirms this during collection.</div>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 3: WORK LOCATION -->
+                <sc-if value="{{ ob3 }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:15px; font-weight:800; margin-bottom:2px;">Select your work location</div>
+                  <div style="font-size:12.5px; color:#5E6E63; margin-bottom:16px;">Nearest facilities to you.</div>
+                  <button onClick="{{ obUpload }}" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; height:46px; border:1px solid #1E8E43; border-radius:12px; background:#fff; color:#1E8E43; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; margin-bottom:16px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" stroke="#1E8E43" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.4" stroke="#1E8E43" stroke-width="2"/></svg>Use my current location</button>
+                  <sc-for list="{{ obLocations }}" as="l" hint-placeholder-count="3">
+                    <button onClick="{{ l.go }}" style="{{ l.style }}"><span style="{{ l.dot }}"><span style="{{ l.inner }}"></span></span><span style="flex:1;"><span style="display:block; font-size:14px; font-weight:800; color:#16231B;">{{ l.title }}</span><span style="display:block; font-size:12px; color:#8A9990;">{{ l.sub }}</span></span></button>
+                  </sc-for>
+                </sc-if>
+
+                <!-- STEP 4: SHIFT -->
+                <sc-if value="{{ ob4 }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:15px; font-weight:800; margin-bottom:2px;">Choose a shift</div>
+                  <div style="font-size:12.5px; color:#5E6E63; margin-bottom:16px;">Available shifts at your selected location.</div>
+                  <sc-for list="{{ obShifts }}" as="s" hint-placeholder-count="3">
+                    <button onClick="{{ s.go }}" style="{{ s.style }}"><span style="{{ s.dot }}"><span style="{{ s.inner }}"></span></span><span style="flex:1;"><span style="display:block; font-size:14px; font-weight:800; color:#16231B;">{{ s.title }}</span><span style="display:block; font-size:12px; color:#8A9990;">{{ s.sub }}</span></span></button>
+                  </sc-for>
+                </sc-if>
+
+                <!-- STEP 5: TRAINING -->
+                <sc-if value="{{ ob5 }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:center; gap:14px; background:#EAF5EC; border-radius:16px; padding:16px; margin-bottom:16px;">
+                    <div style="width:52px; height:52px; border-radius:14px; background:#1E8E43; display:flex; align-items:center; justify-content:center; flex:0 0 auto;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M18 6v14" stroke="#fff" stroke-width="1.8"/></svg></div>
+                    <div><div style="font-size:15px; font-weight:800; color:#0E4A22;">Complete all modules</div><div style="font-size:12.5px; color:#14672F;">{{ obTrainCount }} of 4 done · {{ obTrainPct }}</div></div>
+                  </div>
+                  <sc-for list="{{ obTrain }}" as="m" hint-placeholder-count="4">
+                    <div style="{{ m.rowStyle }}">
+                      <button onClick="{{ m.play }}" style="{{ m.markStyle }}; border:none; cursor:pointer;">{{ m.markEl }}</button>
+                      <div style="flex:1;"><div style="font-size:14px; font-weight:800;">{{ m.name }}</div><div style="font-size:12px; color:#8A9990;">{{ m.dur }}</div></div>
+                      <button onClick="{{ m.play }}" style="{{ m.btnStyle }}">{{ m.btnLabel2 }}</button>
+                    </div>
+                  </sc-for>
+                </sc-if>
+
+                <!-- STEP 6: DOCUMENTS / KYC -->
+                <sc-if value="{{ ob6 }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:20px;">
+                    <div style="font-size:15px; font-weight:800; margin-bottom:2px;">Identity & KYC</div>
+                    <div style="font-size:12.5px; color:#5E6E63; margin-bottom:18px;">Aadhaar and PAN are used for verification only.</div>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Aadhaar number</div><input value="{{ obk.aadhaar.val }}" onChange="{{ obk.aadhaar.on }}" inputmode="numeric" maxlength="12" placeholder="12-digit number" style="{{ obk.aadhaar.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obk.aadhaar.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obk.aadhaar.err }}</div></sc-if></div>
+                    <button onClick="{{ obUpload }}" style="width:100%; height:48px; border:1.5px dashed #9AC7A6; border-radius:12px; background:#F6F9F5; color:#1E8E43; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; margin-bottom:18px; display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 16V6M8 10l4-4 4 4M5 18h14" stroke="#1E8E43" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Aadhaar card</button>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">PAN number</div><input value="{{ obk.pan.val }}" onChange="{{ obk.pan.on }}" maxlength="10" placeholder="ABCDE1234F" style="{{ obk.pan.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obk.pan.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obk.pan.err }}</div></sc-if></div>
+                    <button onClick="{{ obUpload }}" style="width:100%; height:48px; border:1.5px dashed #9AC7A6; border-radius:12px; background:#F6F9F5; color:#1E8E43; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 16V6M8 10l4-4 4 4M5 18h14" stroke="#1E8E43" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload PAN card</button>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 7: FACE VERIFICATION -->
+                <sc-if value="{{ ob7 }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:24px 20px; text-align:center;">
+                    <div style="font-size:15px; font-weight:800; margin-bottom:6px;">Face verification</div>
+                    <div style="font-size:12.5px; color:#5E6E63; line-height:1.6; margin-bottom:20px;">Position your face inside the circle. This confirms your identity for shifts.</div>
+                    <sc-if value="{{ obFaceDone }}" hint-placeholder-val="{{ false }}">
+                      <div style="width:150px; height:150px; border-radius:50%; margin:0 auto 18px; background:#EAF5EC; display:flex; align-items:center; justify-content:center;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#1E8E43"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                      <div style="font-size:14px; font-weight:800; color:#1E8E43;">Face verified</div>
+                    </sc-if>
+                    <sc-if value="{{ obFaceReady }}" hint-placeholder-val="{{ true }}">
+                      <div style="width:150px; height:150px; border-radius:50%; margin:0 auto 18px; background:#EAF5EC; border:2px dashed #9AC7A6; display:flex; align-items:center; justify-content:center;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="4" stroke="#1E8E43" stroke-width="1.6"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="#1E8E43" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+                      <button onClick="{{ onFaceCapture }}" style="width:100%; height:50px; border:none; border-radius:13px; background:#1E8E43; color:#fff; font-size:14px; font-weight:800; font-family:inherit; cursor:pointer;">Capture &amp; verify</button>
+                    </sc-if>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 8: BANK (post-approval) -->
+                <sc-if value="{{ ob8 }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:20px;">
+                    <div style="font-size:15px; font-weight:800; margin-bottom:2px;">Bank account</div>
+                    <div style="font-size:12.5px; color:#5E6E63; margin-bottom:18px;">Your monthly payouts are sent here.</div>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Account holder name</div><input value="{{ obb.holder.val }}" onChange="{{ obb.holder.on }}" placeholder="As per bank records" style="{{ obb.holder.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obb.holder.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obb.holder.err }}</div></sc-if></div>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Bank name</div><input value="{{ obb.bank.val }}" onChange="{{ obb.bank.on }}" placeholder="e.g. HDFC Bank" style="{{ obb.bank.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obb.bank.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obb.bank.err }}</div></sc-if></div>
+                    <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Account number</div><input value="{{ obb.acc.val }}" onChange="{{ obb.acc.on }}" inputmode="numeric" placeholder="Account number" style="{{ obb.acc.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obb.acc.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obb.acc.err }}</div></sc-if></div>
+                    <div><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">IFSC code</div><input value="{{ obb.ifsc.val }}" onChange="{{ obb.ifsc.on }}" placeholder="e.g. HDFC0001234" style="{{ obb.ifsc.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ obb.ifsc.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ obb.ifsc.err }}</div></sc-if></div>
+                  </div>
+                </sc-if>
+
+
+
+                <!-- nav buttons -->
+                <div style="display:flex; gap:10px; margin-top:18px;">
+                  <button onClick="{{ onObBack }}" style="flex:0 0 auto; padding:0 20px; height:54px; border:1px solid #D8E0D8; border-radius:14px; background:#fff; color:#16231B; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer;">{{ obBackLabel }}</button>
+                  <button onClick="{{ onObNext }}" style="flex:1; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:16px; font-weight:800; font-family:inherit; cursor:pointer;">{{ obContinueLabel }}</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- STATUS GATE (PICKER_STATUS) ---------- -->
+          <sc-if value="{{ is.status }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2; padding:20px 22px 28px;">
+              <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:20px;">
+                <sc-for list="{{ gateBtns }}" as="g" hint-placeholder-count="5"><button onClick="{{ g.go }}" style="{{ g.style }}">{{ g.label }}</button></sc-for>
+              </div>
+
+              <!-- UNDER REVIEW (PENDING) -->
+              <sc-if value="{{ gReview }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align:center;">
+                  <div style="width:100px; height:100px; border-radius:50%; background:#FCF2DC; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; position:relative;"><div style="position:absolute; inset:0; border-radius:50%; border:3px solid #E8A317; border-top-color:transparent; animation:spin 1.6s linear infinite;"></div><svg width="42" height="42" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E8A317" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#E8A317" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <div style="font-size:21px; font-weight:800; margin-bottom:8px;">Application under review</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:22px;">Your documents, KYC and face verification are being checked. This usually takes <b>2–4 hours</b>.</div>
+                </div>
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:16px; text-align:left;">
+                  <sc-for list="{{ reviewItems }}" as="r" hint-placeholder-count="4"><div style="display:flex; align-items:center; gap:12px; padding:9px 0;"><span style="{{ r.icon }}">{{ r.mark }}</span><span style="flex:1; font-size:13.5px; font-weight:600; color:#16231B;">{{ r.label }}</span><span style="font-size:12px; font-weight:700; color:{{ r.col }};">{{ r.status }}</span></div></sc-for>
+                </div>
+                <div style="text-align:center; font-size:11.5px; color:#9AA89E; margin-top:16px;">Next after approval: bank details → collect device</div>
+              </sc-if>
+
+              <!-- APPROVED (ACTIVE) -->
+              <sc-if value="{{ gApproved }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="width:100px; height:100px; border-radius:50%; background:#EAF5EC; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;"><svg width="52" height="52" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#1E8E43"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <div style="font-size:21px; font-weight:800; margin-bottom:8px;">You're approved!</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:24px;">Two quick steps left: add your bank details and collect your device from the hub.</div>
+                  <button onClick="{{ onApprovedContinue }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:16px; font-weight:800; font-family:inherit; cursor:pointer;">Continue setup</button>
+                </div>
+              </sc-if>
+
+              <!-- REJECTED -->
+              <sc-if value="{{ gRejected }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="width:100px; height:100px; border-radius:50%; background:#FBE9E9; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;"><svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#D64545" stroke-width="2"/><path d="M9 9l6 6M15 9l-6 6" stroke="#D64545" stroke-width="2" stroke-linecap="round"/></svg></div>
+                  <div style="font-size:21px; font-weight:800; margin-bottom:8px;">Application not approved</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:24px;">Your KYC could not be verified. Please re-check your Aadhaar & PAN details and re-apply, or contact support.</div>
+                  <button onClick="{{ nav.support }}" style="width:100%; height:52px; border:1px solid #1E8E43; border-radius:14px; background:#fff; color:#1E8E43; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;">Contact support</button>
+                </div>
+              </sc-if>
+
+              <!-- BLOCKED -->
+              <sc-if value="{{ gBlocked }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="width:100px; height:100px; border-radius:50%; background:#FBE9E9; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;"><svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#D64545" stroke-width="2"/><path d="M6 6l12 12" stroke="#D64545" stroke-width="2" stroke-linecap="round"/></svg></div>
+                  <div style="font-size:21px; font-weight:800; margin-bottom:8px;">Account blocked</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:24px;">Your account has been blocked. Please contact your hub manager or support for assistance.</div>
+                  <button onClick="{{ nav.support }}" style="width:100%; height:52px; border:1px solid #1E8E43; border-radius:14px; background:#fff; color:#1E8E43; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;">Contact support</button>
+                </div>
+              </sc-if>
+
+              <!-- SUSPENDED -->
+              <sc-if value="{{ gSuspended }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="width:100px; height:100px; border-radius:50%; background:#FCF2DC; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;"><svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E8A317" stroke-width="2"/><path d="M9.5 9v6M14.5 9v6" stroke="#E8A317" stroke-width="2" stroke-linecap="round"/></svg></div>
+                  <div style="font-size:21px; font-weight:800; margin-bottom:8px;">Account suspended</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:24px;">Your account is temporarily suspended. Shifts are paused until this is resolved. Contact support for details.</div>
+                  <button onClick="{{ nav.support }}" style="width:100%; height:52px; border:1px solid #1E8E43; border-radius:14px; background:#fff; color:#1E8E43; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;">Contact support</button>
+                </div>
+              </sc-if>
+
+              <button onClick="{{ nav.home }}" style="width:100%; height:48px; border:none; background:none; color:#8A9990; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:16px;">Preview dashboard (demo)</button>
+            </div>
+          </sc-if>
+
+          <!-- ---------- HOME / DASHBOARD ---------- -->
+          <sc-if value="{{ is.home }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2; padding:16px 16px 24px;">
+              <!-- app header -->
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <div style="display:flex; align-items:center; gap:11px;">
+                  <div style="width:44px; height:44px; border-radius:14px; background:#1E8E43; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:17px;">RV</div>
+                  <div>
+                    <div style="font-size:17px; font-weight:800;">Hi, Rahul</div>
+                    <div style="font-size:12px; color:#5E6E63; font-weight:600;">Picker · ID 4821</div>
+                  </div>
+                </div>
+                <button onClick="{{ nav.notifications }}" style="position:relative; width:42px; height:42px; border-radius:12px; border:1px solid #E4EAE5; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="#16231B" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" stroke="#16231B" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  <span style="position:absolute; top:8px; right:9px; width:9px; height:9px; border-radius:50%; background:#D64545; border:2px solid #fff;"></span>
+                </button>
+              </div>
+
+              <!-- LOADING state -->
+              <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+                <div class="skel" style="height:150px; margin-bottom:14px;"></div>
+                <div class="skel" style="height:78px; margin-bottom:14px;"></div>
+                <div class="skel" style="height:96px; margin-bottom:14px;"></div>
+                <div style="display:flex; gap:12px;"><div class="skel" style="flex:1; height:120px;"></div><div class="skel" style="flex:1; height:120px;"></div></div>
+              </sc-if>
+
+              <!-- ERROR state -->
+              <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#fff; border:1px solid #F3D6D6; border-radius:18px; padding:36px 24px; text-align:center; margin-top:40px;">
+                  <div style="width:66px; height:66px; border-radius:50%; background:#FBE9E9; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="#D64545" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.3" fill="#D64545"/><circle cx="12" cy="12" r="9" stroke="#D64545" stroke-width="2"/></svg>
+                  </div>
+                  <div style="font-size:17px; font-weight:800; margin-bottom:6px;">Couldn't load dashboard</div>
+                  <div style="font-size:13.5px; color:#5E6E63; margin-bottom:20px;">Check your connection and try again.</div>
+                  <button onClick="{{ states.normal }}" style="height:48px; padding:0 28px; border:none; border-radius:12px; background:#1E8E43; color:#fff; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer;">Retry</button>
+                </div>
+              </sc-if>
+
+              <!-- NORMAL state -->
+              <sc-if value="{{ normal }}" hint-placeholder-val="{{ true }}">
+                <!-- collect device (post-onboarding, home) -->
+                <sc-if value="{{ showCollectCard }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ onOpenCollect }}" style="width:100%; text-align:left; display:flex; align-items:center; gap:13px; background:#FCF2DC; border:1px solid #F0DCA6; border-radius:18px; padding:16px; margin-bottom:14px; cursor:pointer; font-family:inherit;">
+                    <div style="width:46px; height:46px; border-radius:13px; background:#F6E4B8; display:flex; align-items:center; justify-content:center; flex:0 0 auto;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="#8A6400" stroke-width="1.8"/><path d="M10.5 18h3" stroke="#8A6400" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+                    <div style="flex:1;"><div style="font-size:14.5px; font-weight:800; color:#7A5600;">Collect your device</div><div style="font-size:12px; color:#8A6400;">Enter the manager OTP to receive HHD-2231</div></div>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#B07A00" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+                </sc-if>
+                <!-- hub / shift card -->
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:0 2px 10px rgba(16,40,24,.04);">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                    <div style="display:flex; align-items:center; gap:9px;">
+                      <span style="font-size:18px; font-weight:800;">Indiranagar Darkstore</span>
+                      <sc-if value="{{ shiftActive }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:5px; background:#EAF5EC; padding:3px 8px; border-radius:7px;"><span style="width:6px; height:6px; border-radius:50%; background:#1E8E43; animation:pulse 1.4s infinite;"></span><span style="font-size:10.5px; font-weight:800; color:#1E8E43;">LIVE</span></span></sc-if>
+                    </div>
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" fill="#9AA89E"/><circle cx="12" cy="10" r="2.4" fill="#fff"/></svg>
+                  </div>
+                  <div style="font-size:13px; color:#5E6E63; margin-bottom:16px;">80 Ft Rd, HAL 2nd Stage, Bengaluru 560038</div>
+                  <div style="display:flex; gap:20px; margin-bottom:16px;">
+                    <div style="flex:1;">
+                      <div style="font-size:11.5px; color:#8A9990; font-weight:600;">Accuracy</div>
+                      <div style="font-size:14px; font-weight:700;">±8 m</div>
+                    </div>
+                    <div style="flex:1;">
+                      <div style="font-size:11.5px; color:#8A9990; font-weight:600;">Status</div>
+                      <div style="font-size:14px; font-weight:700; color:#1E8E43;">On site ✓</div>
+                    </div>
+                  </div>
+                  <div style="height:1px; background:#EEF2ED; margin-bottom:14px;"></div>
+                  <!-- shift active row -->
+                  <sc-if value="{{ shiftActive }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#EAF5EC; border-radius:12px; padding:12px 14px; margin-bottom:14px;">
+                      <span style="display:flex; align-items:center; gap:9px; font-size:15px; font-weight:800; color:#1E8E43;"><span style="width:11px; height:11px; border-radius:50%; background:#1E8E43;"></span>Shift Active</span>
+                      <span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:#14672F; background:#fff; padding:5px 10px; border-radius:8px;">{{ timer }}</span>
+                    </div>
+                    <button onClick="{{ act.checkout }}" style="width:100%; height:52px; border:none; border-radius:14px; background:#D64545; color:#fff; font-size:15px; font-weight:800; letter-spacing:.5px; font-family:inherit; cursor:pointer;">CHECK OUT</button>
+                  </sc-if>
+                  <!-- shift inactive row -->
+                  <sc-if value="{{ shiftInactive }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                      <span style="display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700;"><span style="width:34px; height:34px; border-radius:10px; background:#EFF3EE; display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#1E8E43" stroke-width="2"/><path d="M12 7.5V12l3 2" stroke="#1E8E43" stroke-width="2" stroke-linecap="round"/></svg></span>Today's Shift</span>
+                      <span style="font-size:14px; font-weight:800; color:#1E8E43;">9:00 AM – 6:00 PM</span>
+                    </div>
+                    <button onClick="{{ act.startShift }}" style="width:100%; height:52px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; letter-spacing:.5px; font-family:inherit; cursor:pointer;">START MY SHIFT</button>
+                  </sc-if>
+                </div>
+
+                <!-- balance card -->
+                <button onClick="{{ nav.payouts }}" style="width:100%; text-align:left; border:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; background:#123B22; border-radius:18px; padding:16px 18px; margin-bottom:14px;">
+                  <div style="display:flex; align-items:center; gap:13px;">
+                    <div style="width:46px; height:46px; border-radius:13px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="2.5" stroke="#fff" stroke-width="1.8"/><path d="M3 10h18" stroke="#fff" stroke-width="1.8"/><circle cx="17" cy="14.5" r="1.4" fill="#fff"/></svg></div>
+                    <div>
+                      <div style="font-size:12.5px; color:rgba(255,255,255,.8); font-weight:600;">Available Balance</div>
+                      <div style="font-size:24px; font-weight:800; color:#F2C94C; font-family:'JetBrains Mono',monospace;">₹4,850</div>
+                      <div style="font-size:11px; color:rgba(255,255,255,.7);">₹1,200 pending</div>
+                    </div>
+                  </div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="rgba(255,255,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
+                <!-- orders card -->
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:16px; margin-bottom:14px; display:flex; gap:14px; align-items:center;">
+                  <div style="width:54px; height:54px; border-radius:14px; background:#E0F2F0; display:flex; align-items:center; justify-content:center; flex:0 0 auto;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8Z" stroke="#0E8F8A" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 8l8 4 8-4M12 12v8" stroke="#0E8F8A" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+                  <div style="flex:1;">
+                    <div style="display:flex; align-items:baseline; gap:5px;"><span style="font-size:30px; font-weight:800;">64</span><span style="font-size:14px; color:#5E6E63; font-weight:600;">orders</span><span style="margin-left:auto; font-size:13px; font-weight:800; color:#E8A317;">8 pending</span></div>
+                    <div style="font-size:12px; color:#5E6E63; margin:4px 0 8px;">Orders synced from HHD</div>
+                    <div style="height:8px; background:#EEF2ED; border-radius:5px; overflow:hidden;"><div style="width:88%; height:100%; background:#0E8F8A; border-radius:5px;"></div></div>
+                  </div>
+                </div>
+
+                <!-- metrics row -->
+                <div style="display:flex; gap:12px; margin-bottom:14px;">
+                  <div style="flex:1; background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:15px;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:#FCF2DC; display:flex; align-items:center; justify-content:center; margin-bottom:12px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M7 8h7a2.5 2.5 0 0 1 0 5H8a2.5 2.5 0 0 0 0 5h8" stroke="#E8A317" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+                    <div style="font-size:24px; font-weight:800; font-family:'JetBrains Mono',monospace;">₹720</div>
+                    <div style="font-size:12px; color:#5E6E63; font-weight:600;">Today's Earnings</div>
+                  </div>
+                  <div style="flex:1; background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:15px;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:#1E8E43; display:flex; align-items:center; justify-content:center; margin-bottom:12px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg></div>
+                    <div style="font-size:24px; font-weight:800; font-family:'JetBrains Mono',monospace;">₹150</div>
+                    <div style="font-size:12px; color:#5E6E63; font-weight:600;">Incentives Today</div>
+                  </div>
+                </div>
+
+                <!-- performance -->
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:18px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <span style="font-size:16px; font-weight:800;">Performance Metrics</span>
+                    <span style="background:#EAF5EC; color:#1E8E43; font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:8px;">Top 12%</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:7px;"><span style="font-size:13.5px; color:#5E6E63; font-weight:600;">Accuracy</span><span style="font-size:14px; font-weight:800;">98%</span></div>
+                  <div style="height:8px; background:#EEF2ED; border-radius:5px; overflow:hidden; margin-bottom:16px;"><div style="width:98%; height:100%; background:#1E8E43;"></div></div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:7px;"><span style="font-size:13.5px; color:#5E6E63; font-weight:600;">Speed</span><span style="font-size:14px; font-weight:800;">42 items/hr</span></div>
+                  <div style="height:8px; background:#EEF2ED; border-radius:5px; overflow:hidden;"><div style="width:85%; height:100%; background:#E8A317;"></div></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- ---------- ATTENDANCE ---------- -->
+          <sc-if value="{{ is.attendance }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="background:#fff; padding:16px 20px 0; border-bottom:1px solid #EEF2ED;">
+                <div style="font-size:20px; font-weight:800; margin-bottom:2px;">Attendance</div>
+                <div style="font-size:12.5px; color:#5E6E63; margin-bottom:14px;">Track your shifts, OT & history</div>
+                <div style="display:flex;">
+                  <sc-for list="{{ attTabs }}" as="t" hint-placeholder-count="3">
+                    <button onClick="{{ t.go }}" style="{{ t.style }}"><span>{{ t.iconEl }}</span>{{ t.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="padding:16px 16px 24px;">
+                <!-- present status card (all tabs) -->
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:18px; display:flex; gap:14px; margin-bottom:16px;">
+                  <div style="flex:1;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><span style="width:8px; height:8px; border-radius:50%; background:#1E8E43;"></span><span style="font-size:16px; font-weight:800; color:#1E8E43;">Present</span></div>
+                    <div style="font-size:12.5px; color:#5E6E63; margin-bottom:8px;">9:00 AM – 6:00 PM</div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:14px;"><span style="width:16px; height:16px; border-radius:50%; background:#1E8E43; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; font-weight:800;">✓</span><span style="font-size:12.5px; color:#1E8E43;">Punched in on time</span></div>
+                    <div style="font-size:11.5px; color:#8A9990; margin-bottom:3px;">Hours Worked Today</div>
+                    <div style="font-size:24px; font-weight:800; font-family:'JetBrains Mono',monospace;">{{ attHours }}</div>
+                  </div>
+                  <div style="width:88px; height:88px; flex:0 0 auto; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <svg width="88" height="88" viewBox="0 0 88 88"><circle cx="44" cy="44" r="36" stroke="#EEF2ED" stroke-width="8" fill="none"/><circle cx="44" cy="44" r="36" stroke="#1E8E43" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="{{ attRingDash }}" transform="rotate(-90 44 44)"/></svg>
+                    <span style="position:absolute; font-size:16px; font-weight:800; color:#1E8E43;">{{ attPct }}</span>
+                  </div>
+                </div>
+
+                <!-- DETAILS tab -->
+                <sc-if value="{{ aDetails }}" hint-placeholder-val="{{ true }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:6px 18px;">
+                    <sc-for list="{{ attRows }}" as="r" hint-placeholder-count="5">
+                      <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid #F1F4F0;"><span style="font-size:13.5px; color:#5E6E63;">{{ r.k }}</span><span style="font-size:13.5px; font-weight:700;">{{ r.v }}</span></div>
+                    </sc-for>
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0;"><span style="font-size:13.5px; color:#5E6E63;">Status</span><span style="display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; color:#1E8E43;"><span style="width:8px; height:8px; border-radius:50%; background:#1E8E43;"></span>Active</span></div>
+                  </div>
+                </sc-if>
+
+                <!-- OT tab -->
+                <sc-if value="{{ aOt }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #E4EAE5; border-radius:12px; padding:14px 16px; margin-bottom:16px;"><span style="font-size:22px; color:#9AA89E; cursor:pointer;">‹</span><span style="font-size:15px; font-weight:800;">March 2026</span><span style="font-size:22px; color:#9AA89E; cursor:pointer;">›</span></div>
+                  <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+                    <div style="text-align:center; padding:50px 20px;">
+                      <div style="width:80px; height:80px; border-radius:50%; background:#EFF3EE; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;"><svg width="44" height="44" viewBox="0 0 24 24" fill="#D3DBD4"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg></div>
+                      <div style="font-size:15px; font-weight:700; color:#5E6E63;">No overtime hours recorded</div>
+                      <div style="font-size:13px; color:#9AA89E; margin-top:4px;">for March 2026</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ normal }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#EAF5EC; border-radius:16px; padding:18px; margin-bottom:18px;">
+                      <div><div style="font-size:13px; color:#14672F; margin-bottom:6px;">Total OT Hours</div><div style="font-size:30px; font-weight:800; color:#0E4A22; font-family:'JetBrains Mono',monospace;">12 hrs</div><div style="font-size:12.5px; color:#14672F; margin-top:8px;">OT Rate · <b>1.5x</b></div></div>
+                      <div style="width:60px; height:60px; border-radius:16px; background:#1E8E43; display:flex; align-items:center; justify-content:center;"><svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg></div>
+                    </div>
+                    <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Weekly Breakdown</div>
+                    <sc-for list="{{ otWeeks }}" as="w" hint-placeholder-count="3">
+                      <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #E4EAE5; border-radius:14px; padding:16px; margin-bottom:10px;"><div><div style="font-size:14px; font-weight:800;">{{ w.week }}</div><div style="font-size:12px; color:#8A9990;">{{ w.range }}</div></div><div style="text-align:right;"><div style="font-size:16px; font-weight:800; color:#1E8E43;">{{ w.hrs }}</div><div style="font-size:12px; color:#8A9990;">{{ w.amt }}</div></div></div>
+                    </sc-for>
+                    <div style="display:flex; align-items:center; gap:14px; background:#EAF5EC; border-radius:16px; padding:18px; margin-top:8px;"><div style="width:52px; height:52px; border-radius:50%; background:#1E8E43; display:flex; align-items:center; justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 18l6-6 4 4 6-8" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><div style="font-size:13px; color:#14672F;">Total OT Earnings</div><div style="font-size:26px; font-weight:800; color:#0E4A22; font-family:'JetBrains Mono',monospace;">₹1,800</div></div></div>
+                  </sc-if>
+                </sc-if>
+
+                <!-- HISTORY tab -->
+                <sc-if value="{{ aHistory }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #E4EAE5; border-radius:12px; padding:14px 16px; margin-bottom:16px;"><span style="font-size:22px; color:#9AA89E;">‹</span><span style="font-size:15px; font-weight:800;">March 2026</span><span style="font-size:22px; color:#9AA89E;">›</span></div>
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:16px; margin-bottom:16px;">
+                    <div style="display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:8px;"><sc-for list="{{ dow }}" as="d" hint-placeholder-count="7"><span style="text-align:center; font-size:11px; font-weight:700; color:#8A9990;">{{ d.l }}</span></sc-for></div>
+                    <div style="display:grid; grid-template-columns:repeat(7,1fr); row-gap:2px;">
+                      <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
+                        <span style="height:40px; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="{{ c.circle }}">{{ c.n }}</span><span style="{{ c.dot }}"></span></span>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:12px;">
+                    <div style="flex:1; background:#EAF5EC; border-radius:16px; padding:18px;"><div style="font-size:30px; font-weight:800; color:#0E4A22;">22</div><div style="font-size:13px; color:#14672F;">Present Days</div></div>
+                    <div style="flex:1; background:#FCF2DC; border-radius:16px; padding:18px;"><div style="font-size:30px; font-weight:800; color:#7A5600;">1</div><div style="font-size:13px; color:#8A6400;">Half Days</div></div>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- PERFORMANCE ---------- -->
+          <sc-if value="{{ is.performance }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2; padding:16px 16px 24px;">
+              <div style="font-size:22px; font-weight:800; margin-bottom:2px;">My Performance</div>
+              <div style="font-size:13px; color:#5E6E63; margin-bottom:18px;">Orders, time, and accuracy metrics</div>
+              <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; flex-wrap:wrap; gap:12px;"><div class="skel" style="width:calc(50% - 6px); height:120px;"></div><div class="skel" style="width:calc(50% - 6px); height:120px;"></div><div class="skel" style="width:calc(50% - 6px); height:120px;"></div><div class="skel" style="width:calc(50% - 6px); height:120px;"></div></div>
+                <div class="skel" style="height:96px; margin-top:14px;"></div>
+              </sc-if>
+              <sc-if value="{{ normal }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                  <sc-for list="{{ perfCards }}" as="c" hint-placeholder-count="4">
+                    <div style="width:calc(50% - 6px); background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:16px;"><div style="{{ c.iconBg }}">{{ c.iconEl }}</div><div style="font-size:26px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-top:12px;">{{ c.value }}</div><div style="font-size:12.5px; color:#5E6E63; font-weight:600;">{{ c.label }}</div></div>
+                  </sc-for>
+                </div>
+                <div style="background:#123B22; border-radius:18px; padding:20px; margin-bottom:14px;"><div style="font-size:13px; color:rgba(255,255,255,.8);">Today's Earnings</div><div style="font-size:34px; font-weight:800; color:#F2C94C; font-family:'JetBrains Mono',monospace; margin-top:4px;">₹720</div><div style="font-size:12px; color:rgba(255,255,255,.7); margin-top:4px;">Hub: Indiranagar Darkstore</div></div>
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; padding:18px;">
+                  <div style="font-size:15px; font-weight:800; margin-bottom:4px;">Weekly Earnings</div>
+                  <div style="font-size:12.5px; color:#5E6E63; margin-bottom:18px;">Your performance this week</div>
+                  <div style="display:flex; align-items:flex-end; gap:8px; height:130px;">
+                    <sc-for list="{{ weekBars }}" as="b" hint-placeholder-count="7">
+                      <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; justify-content:flex-end; height:100%;"><div style="width:100%; height:{{ b.h }}; background:{{ b.col }}; border-radius:6px 6px 0 0;"></div><span style="font-size:10.5px; color:#8A9990; font-weight:600;">{{ b.d }}</span></div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- ---------- PAYOUTS ---------- -->
+          <sc-if value="{{ is.payouts }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;">
+                <button onClick="{{ nav.home }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span style="font-size:17px; font-weight:700;">Payouts</span>
+              </div>
+              <div style="padding:16px 16px 24px;">
+                <div style="background:#123B22; border-radius:20px; padding:22px; margin-bottom:16px;">
+                  <div style="font-size:12.5px; color:rgba(255,255,255,.75);">Current Month · March 2026</div>
+                  <div style="font-size:13px; color:rgba(255,255,255,.85); margin-top:14px;">Net Payout</div>
+                  <div style="font-size:38px; font-weight:800; color:#F2C94C; font-family:'JetBrains Mono',monospace; margin:2px 0;">₹18,450</div>
+                  <div style="font-size:12px; color:rgba(255,255,255,.7);">Pay date: 5 Apr 2026</div>
+                  <div style="height:1px; background:rgba(255,255,255,.14); margin:16px 0;"></div>
+                  <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div><div style="font-size:11.5px; color:rgba(255,255,255,.7);">Available to withdraw</div><div style="font-size:19px; font-weight:800; color:#fff; font-family:'JetBrains Mono',monospace;">₹4,850</div></div>
+                    <button onClick="{{ onOpenWithdraw }}" style="border:none; border-radius:12px; background:#F2C94C; color:#123B22; font-size:14px; font-weight:800; padding:12px 20px; font-family:inherit; cursor:pointer;">Withdraw</button>
+                  </div>
+                </div>
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:18px; margin-bottom:16px;">
+                  <div style="font-size:15px; font-weight:800; margin-bottom:14px;">Bank &amp; UPI verification</div>
+                  <button onClick="{{ nav.bank }}" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:11px 0; border:none; border-bottom:1px solid #F1F4F0; background:none; cursor:pointer; font-family:inherit;"><span style="font-size:13.5px; font-weight:600; color:#16231B;">Bank account</span><span style="display:flex; align-items:center; gap:8px;"><span style="background:#EAF5EC; color:#1E8E43; font-size:11px; font-weight:800; padding:3px 9px; border-radius:7px;">Verified</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#9AA89E" stroke-width="2" stroke-linecap="round"/></svg></span></button>
+                  <button onClick="{{ nav.upi }}" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:11px 0; border:none; background:none; cursor:pointer; font-family:inherit;"><span style="font-size:13.5px; font-weight:600; color:#16231B;">UPI</span><span style="display:flex; align-items:center; gap:8px;"><span style="background:#FCF2DC; color:#8A6400; font-size:11px; font-weight:800; padding:3px 9px; border-radius:7px;">Pending</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#9AA89E" stroke-width="2" stroke-linecap="round"/></svg></span></button>
+                </div>
+                <div style="font-size:14px; font-weight:800; margin-bottom:12px; padding-left:2px;">Transaction history</div>
+                <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; text-align:center; padding:44px 20px;"><div style="width:72px; height:72px; border-radius:50%; background:#EFF3EE; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2.5" stroke="#C3CFC6" stroke-width="1.8"/><path d="M8 10h8M8 14h5" stroke="#C3CFC6" stroke-width="1.8" stroke-linecap="round"/></svg></div><div style="font-size:14.5px; font-weight:700; color:#5E6E63;">No transaction history yet</div><div style="font-size:12.5px; color:#9AA89E; margin-top:4px;">Your monthly payouts will appear here</div></div>
+                </sc-if>
+                <sc-if value="{{ normal }}" hint-placeholder-val="{{ true }}">
+                  <sc-for list="{{ payHistory }}" as="p" hint-placeholder-count="4">
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #E4EAE5; border-radius:14px; padding:15px 16px; margin-bottom:10px;"><div><div style="font-size:14px; font-weight:800;">{{ p.month }}</div><div style="font-size:12px; color:#8A9990;">{{ p.date }} · {{ p.mode }}</div></div><div style="text-align:right;"><div style="font-size:16px; font-weight:800; font-family:'JetBrains Mono',monospace;">{{ p.amt }}</div><span style="font-size:11px; font-weight:800; color:#1E8E43;">Paid</span></div></div>
+                  </sc-for>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- BANK DETAILS ---------- -->
+          <sc-if value="{{ is.bank }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.payouts }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Bank account</span></div>
+              <div style="padding:20px 20px 24px;">
+                <div style="display:flex; align-items:center; gap:8px; background:#EAF5EC; border:1px solid #CFE7D5; border-radius:12px; padding:12px 14px; margin-bottom:18px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#1E8E43"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-size:12.5px; color:#14672F; font-weight:600;">Verified · payouts go to this account</span></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Account holder name</div><input value="{{ bf.holder.val }}" onChange="{{ bf.holder.on }}" style="{{ bf.holder.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ bf.holder.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ bf.holder.err }}</div></sc-if></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Bank name</div><input value="{{ bf.bank.val }}" onChange="{{ bf.bank.on }}" style="{{ bf.bank.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ bf.bank.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ bf.bank.err }}</div></sc-if></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Account number</div><input value="{{ bf.acc.val }}" onChange="{{ bf.acc.on }}" inputmode="numeric" style="{{ bf.acc.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ bf.acc.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ bf.acc.err }}</div></sc-if></div>
+                <div style="margin-bottom:18px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">IFSC code</div><input value="{{ bf.ifsc.val }}" onChange="{{ bf.ifsc.on }}" style="{{ bf.ifsc.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ bf.ifsc.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ bf.ifsc.err }}</div></sc-if></div>
+                <button onClick="{{ onSaveBank }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:16px; font-weight:800; font-family:inherit; cursor:pointer;">Save bank details</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- UPI DETAILS ---------- -->
+          <sc-if value="{{ is.upi }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.payouts }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">UPI details</span></div>
+              <div style="padding:20px 20px 24px;">
+                <div style="display:flex; align-items:center; gap:8px; background:#FCF2DC; border:1px solid #F0DCA6; border-radius:12px; padding:12px 14px; margin-bottom:18px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E8A317" stroke-width="2"/><path d="M12 7.5v5l3 2" stroke="#E8A317" stroke-width="2" stroke-linecap="round"/></svg><span style="font-size:12.5px; color:#8A6400; font-weight:600;">Pending verification · add a UPI ID to receive faster payouts</span></div>
+                <div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">UPI ID</div>
+                <div style="height:50px; border:2px solid #1E8E43; border-radius:12px; background:#fff; display:flex; align-items:center; padding:0 14px; font-size:15px; color:#8A9990; margin-bottom:14px;">yourname@upi</div>
+                <div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Confirm UPI ID</div>
+                <div style="height:50px; border:1px solid #D8E0D8; border-radius:12px; background:#fff; display:flex; align-items:center; padding:0 14px; font-size:15px; color:#8A9990; margin-bottom:14px;">Re-enter UPI ID</div>
+                <button style="width:100%; height:52px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; margin-top:6px;">Verify &amp; save UPI</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- NOTIFICATIONS ---------- -->
+          <sc-if value="{{ is.notifications }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.home }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Notifications</span></div>
+              <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center; padding:70px 30px;"><div style="width:84px; height:84px; border-radius:50%; background:#EFF3EE; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;"><svg width="42" height="42" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="#C3CFC6" stroke-width="1.8" stroke-linejoin="round"/></svg></div><div style="font-size:15px; font-weight:700; color:#5E6E63;">You're all caught up</div><div style="font-size:12.5px; color:#9AA89E; margin-top:4px;">No new notifications</div></div>
+              </sc-if>
+              <sc-if value="{{ normal }}" hint-placeholder-val="{{ true }}">
+                <div style="padding:12px 16px 24px;">
+                  <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+                    <div style="display:flex; gap:13px; background:{{ n.bg }}; border:1px solid #E4EAE5; border-radius:14px; padding:15px; margin-bottom:10px;"><div style="{{ n.iconBg }}">{{ n.iconEl }}</div><div style="flex:1;"><div style="font-size:14px; font-weight:800; margin-bottom:2px;">{{ n.title }}</div><div style="font-size:12.5px; color:#5E6E63; line-height:1.5;">{{ n.body }}</div><div style="font-size:11px; color:#9AA89E; margin-top:6px;">{{ n.time }}</div></div></div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- ---------- PROFILE ---------- -->
+          <sc-if value="{{ is.profile }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2; padding:16px 16px 24px;">
+              <div style="font-size:22px; font-weight:800; margin-bottom:16px;">Profile</div>
+              <div style="background:#123B22; border-radius:20px; padding:20px; margin-bottom:16px; color:#fff;">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                  <div style="width:60px; height:60px; border-radius:18px; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800;">RV</div>
+                  <div style="flex:1;"><div style="font-size:19px; font-weight:800;">{{ editName }}</div><div style="font-size:12.5px; color:rgba(255,255,255,.75);">+91 98765 43210 · ID 4821</div></div>
+                  <button onClick="{{ nav.profileEdit }}" style="border:none; background:rgba(255,255,255,.16); color:#fff; font-size:12.5px; font-weight:700; padding:8px 13px; border-radius:10px; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18 10l-4-4L4 16v4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M13 7l4 4" stroke="#fff" stroke-width="1.8"/></svg>Edit</button>
+                </div>
+                <div style="display:flex; gap:12px;">
+                  <div style="flex:1; background:rgba(255,255,255,.1); border-radius:12px; padding:10px 12px;"><div style="font-size:10.5px; color:rgba(255,255,255,.7);">Account Status</div><div style="font-size:13px; font-weight:800; color:#8CE0A3;">Active</div></div>
+                  <div style="flex:1; background:rgba(255,255,255,.1); border-radius:12px; padding:10px 12px;"><div style="font-size:10.5px; color:rgba(255,255,255,.7);">Member Since</div><div style="font-size:13px; font-weight:800;">Jan 2026</div></div>
+                </div>
+              </div>
+              <div style="background:#fff; border:1px solid #E4EAE5; border-radius:18px; overflow:hidden;">
+                <sc-for list="{{ profileMenu }}" as="m" hint-placeholder-count="8">
+                  <button onClick="{{ m.go }}" style="width:100%; display:flex; align-items:center; gap:13px; padding:14px 16px; border:none; border-bottom:1px solid #F1F4F0; background:none; cursor:pointer; font-family:inherit; text-align:left;"><span style="{{ m.iconBg }}">{{ m.iconEl }}</span><span style="flex:1;"><span style="display:block; font-size:14.5px; font-weight:700; color:#16231B;">{{ m.title }}</span><span style="display:block; font-size:12px; color:#8A9990;">{{ m.sub }}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C3CFC6" stroke-width="2" stroke-linecap="round"/></svg></button>
+                </sc-for>
+              </div>
+              <button onClick="{{ onLogout }}" style="width:100%; height:52px; border:1px solid #F0D2D2; border-radius:14px; background:#fff; color:#D64545; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; margin-top:16px; display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10" stroke="#D64545" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Logout</button>
+            </div>
+          </sc-if>
+
+          <!-- ---------- EDIT PROFILE ---------- -->
+          <sc-if value="{{ is.profileEdit }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Edit profile</span></div>
+              <div style="padding:22px 20px 28px;">
+                <div style="text-align:center; margin-bottom:22px;">
+                  <div style="width:96px; height:96px; border-radius:50%; background:#123B22; color:#fff; display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:800; margin:0 auto 10px; position:relative;">RV<span style="position:absolute; bottom:0; right:0; width:30px; height:30px; border-radius:50%; background:#1E8E43; border:3px solid #F3F6F2; display:flex; align-items:center; justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="#fff" stroke-width="1.8"/></svg></span></div>
+                  <button onClick="{{ onChangePhoto }}" style="border:none; background:none; color:#1E8E43; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">Change photo</button>
+                </div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Full name</div><input value="{{ ef.name.val }}" onChange="{{ ef.name.on }}" style="{{ ef.name.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ ef.name.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ ef.name.err }}</div></sc-if></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Date of birth</div><input value="{{ ef.dob.val }}" onChange="{{ ef.dob.on }}" style="{{ ef.dob.style }}" style-focus="border-color:#1E8E43;"></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Email</div><input value="{{ ef.email.val }}" onChange="{{ ef.email.on }}" inputmode="email" style="{{ ef.email.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ ef.email.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ ef.email.err }}</div></sc-if></div>
+                <div style="margin-bottom:20px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Gender</div><div style="display:flex; gap:8px;"><sc-for list="{{ genderOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></div>
+                <button onClick="{{ onSaveEdit }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:16px; font-weight:800; font-family:inherit; cursor:pointer;">Save changes</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- PERSONAL INFORMATION ---------- -->
+          <sc-if value="{{ is.personal }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Personal information</span></div>
+              <div style="padding:20px 20px 28px;">
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Primary phone</div><div style="height:50px; border:1px solid #E4EAE5; border-radius:12px; background:#F6F8F5; display:flex; align-items:center; justify-content:space-between; padding:0 14px;"><span style="font-size:15px; font-weight:600;">{{ phonePrimary }}</span><span style="background:#EAF5EC; color:#1E8E43; font-size:11px; font-weight:800; padding:3px 9px; border-radius:7px;">Verified</span></div></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Alternate phone (optional)</div><input value="{{ pf.altPhone.val }}" onChange="{{ pf.altPhone.on }}" inputmode="numeric" maxlength="10" placeholder="Add a backup number" style="{{ pf.altPhone.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ pf.altPhone.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ pf.altPhone.err }}</div></sc-if></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Address</div><textarea value="{{ pf.address.val }}" onChange="{{ pf.address.on }}" style="{{ pf.address.style }}" style-focus="border-color:#1E8E43;"></textarea><sc-if value="{{ pf.address.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ pf.address.err }}</div></sc-if></div>
+                <div style="display:flex; gap:12px; margin-bottom:14px;">
+                  <div style="flex:1;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">City</div><input value="{{ pf.city.val }}" onChange="{{ pf.city.on }}" style="{{ pf.city.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ pf.city.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ pf.city.err }}</div></sc-if></div>
+                  <div style="flex:1;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Pincode</div><input value="{{ pf.pincode.val }}" onChange="{{ pf.pincode.on }}" inputmode="numeric" maxlength="6" style="{{ pf.pincode.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ pf.pincode.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ pf.pincode.err }}</div></sc-if></div>
+                </div>
+                <div style="height:1px; background:#E4EAE5; margin:20px 0;"></div>
+                <div style="font-size:14px; font-weight:800; margin-bottom:14px;">Emergency contact</div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Contact name</div><input value="{{ pf.emgName.val }}" onChange="{{ pf.emgName.on }}" style="{{ pf.emgName.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ pf.emgName.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ pf.emgName.err }}</div></sc-if></div>
+                <div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Contact phone</div><input value="{{ pf.emgPhone.val }}" onChange="{{ pf.emgPhone.on }}" inputmode="numeric" maxlength="10" style="{{ pf.emgPhone.style }}" style-focus="border-color:#1E8E43;"><sc-if value="{{ pf.emgPhone.hasErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px; color:#D64545; font-weight:600; margin-top:6px;">{{ pf.emgPhone.err }}</div></sc-if></div>
+                <div style="margin-bottom:20px;"><div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Relationship</div><div style="display:flex; gap:8px;"><sc-for list="{{ relOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></div>
+                <button onClick="{{ onSavePersonal }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:16px; font-weight:800; font-family:inherit; cursor:pointer;">Save changes</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- DEVICE STATUS ---------- -->
+          <sc-if value="{{ is.deviceStatus }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Device status</span></div>
+              <div style="padding:16px 16px 24px;">
+                <div style="background:#123B22; border-radius:20px; padding:20px; color:#fff; margin-bottom:16px;">
+                  <div style="display:flex; align-items:center; gap:13px; margin-bottom:18px;">
+                    <div style="width:52px; height:52px; border-radius:14px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="#fff" stroke-width="1.8"/><path d="M10.5 18h3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+                    <div style="flex:1;"><div style="font-size:18px; font-weight:800;">HHD-2231</div><div style="font-size:12.5px; color:rgba(255,255,255,.75);">Zebra TC21 · Handheld</div></div>
+                    <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(140,224,163,.2); padding:4px 10px; border-radius:8px;"><span style="width:6px; height:6px; border-radius:50%; background:#8CE0A3;"></span><span style="font-size:11px; font-weight:800; color:#8CE0A3;">Active</span></span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><span style="font-size:12.5px; color:rgba(255,255,255,.8);">Battery</span><span style="font-size:13px; font-weight:800;">86%</span></div>
+                  <div style="height:8px; background:rgba(255,255,255,.15); border-radius:5px; overflow:hidden;"><div style="width:86%; height:100%; background:#8CE0A3; border-radius:5px;"></div></div>
+                </div>
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:6px 18px; margin-bottom:16px;">
+                  <sc-for list="{{ deviceRows }}" as="r" hint-placeholder-count="4"><div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid #F1F4F0;"><span style="font-size:13.5px; color:#5E6E63;">{{ r.k }}</span><span style="font-size:13.5px; font-weight:700;">{{ r.v }}</span></div></sc-for>
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 0;"><span style="font-size:13.5px; color:#5E6E63;">Last synced</span><span style="font-size:13.5px; font-weight:700; color:#1E8E43;">2 min ago</span></div>
+                </div>
+                <button onClick="{{ onDeviceReport }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer; margin-bottom:10px;">Report an issue</button>
+                <button onClick="{{ onDeviceReplace }}" style="width:100%; height:52px; border:1px solid #1E8E43; border-radius:14px; background:#fff; color:#1E8E43; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;">Request replacement</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- WORK HISTORY ---------- -->
+          <sc-if value="{{ is.workHistory }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Work history</span></div>
+              <div style="padding:16px 16px 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #E4EAE5; border-radius:12px; padding:14px 16px; margin-bottom:16px;"><span style="font-size:22px; color:#9AA89E; cursor:pointer;">‹</span><span style="font-size:15px; font-weight:800;">March 2026</span><span style="font-size:22px; color:#9AA89E; cursor:pointer;">›</span></div>
+                <div style="display:flex; gap:10px; margin-bottom:18px;">
+                  <div style="flex:1; background:#EAF5EC; border-radius:14px; padding:14px;"><div style="font-size:24px; font-weight:800; color:#0E4A22;">22</div><div style="font-size:11.5px; color:#14672F; font-weight:600;">Present</div></div>
+                  <div style="flex:1; background:#FCF2DC; border-radius:14px; padding:14px;"><div style="font-size:24px; font-weight:800; color:#7A5600;">12h</div><div style="font-size:11.5px; color:#8A6400; font-weight:600;">Overtime</div></div>
+                  <div style="flex:1; background:#E0F2F0; border-radius:14px; padding:14px;"><div style="font-size:24px; font-weight:800; color:#0A5F5B;">198h</div><div style="font-size:11.5px; color:#0A5F5B; font-weight:600;">Total</div></div>
+                </div>
+                <sc-for list="{{ workRows }}" as="w" hint-placeholder-count="5">
+                  <div style="display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid #E4EAE5; border-radius:14px; padding:15px 16px; margin-bottom:10px;">
+                    <div><div style="font-size:14px; font-weight:800;">{{ w.date }}</div><div style="font-size:12px; color:#8A9990;">{{ w.hub }} · {{ w.hrs }}</div></div>
+                    <span style="background:{{ w.bg }}; color:{{ w.col }}; font-size:11px; font-weight:800; padding:5px 11px; border-radius:8px;">{{ w.badge }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- DOCUMENTS ---------- -->
+          <sc-if value="{{ is.documents }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Documents</span></div>
+              <div style="padding:16px 16px 24px;">
+                <sc-for list="{{ docItems }}" as="d" hint-placeholder-count="3">
+                  <button onClick="{{ d.go }}" style="width:100%; display:flex; align-items:center; gap:13px; background:#fff; border:1px solid #E4EAE5; border-radius:14px; padding:15px 16px; margin-bottom:10px; cursor:pointer; font-family:inherit; text-align:left;">
+                    <span style="{{ d.iconBg }}">{{ d.iconEl }}</span>
+                    <span style="flex:1;"><span style="display:block; font-size:14.5px; font-weight:800;">{{ d.name }}</span><span style="display:block; font-size:12px; color:#8A9990; font-family:'JetBrains Mono',monospace;">{{ d.num }}</span></span>
+                    <sc-if value="{{ d.verified }}" hint-placeholder-val="{{ true }}"><span style="background:#EAF5EC; color:#1E8E43; font-size:11px; font-weight:800; padding:4px 10px; border-radius:8px;">Verified</span></sc-if>
+                    <sc-if value="{{ d.pending }}" hint-placeholder-val="{{ false }}"><span style="background:#FCF2DC; color:#8A6400; font-size:11px; font-weight:800; padding:4px 10px; border-radius:8px;">Upload</span></sc-if>
+                  </button>
+                </sc-for>
+                <button onClick="{{ onAddDoc }}" style="width:100%; height:52px; border:1.5px dashed #9AC7A6; border-radius:14px; background:#fff; color:#1E8E43; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#1E8E43" stroke-width="2" stroke-linecap="round"/></svg>Add another document</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- TRAINING ---------- -->
+          <sc-if value="{{ is.training }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Training</span></div>
+              <div style="padding:16px 16px 24px;">
+                <div style="display:flex; align-items:center; gap:16px; background:#EAF5EC; border-radius:18px; padding:18px; margin-bottom:18px;">
+                  <div style="width:66px; height:66px; flex:0 0 auto; position:relative; display:flex; align-items:center; justify-content:center;"><svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" stroke="#CDE7D5" stroke-width="7" fill="none"/><circle cx="33" cy="33" r="27" stroke="#1E8E43" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="169.6 169.6" transform="rotate(-90 33 33)"/></svg><span style="position:absolute; font-size:14px; font-weight:800; color:#0E4A22;">{{ profTrainPct }}</span></div>
+                  <div>
+                    <sc-if value="{{ profAllDone }}" hint-placeholder-val="{{ false }}"><div style="font-size:16px; font-weight:800; color:#0E4A22;">All modules complete</div><div style="font-size:12.5px; color:#14672F; margin-top:2px;">4 of 4 · certified picker</div></sc-if>
+                    <sc-if value="{{ profAllDone }}" hint-placeholder-val="{{ true }}"></sc-if>
+                    <sc-if value="{{ profNotAllDone }}" hint-placeholder-val="{{ true }}"><div style="font-size:16px; font-weight:800; color:#0E4A22;">Complete your training</div><div style="font-size:12.5px; color:#14672F; margin-top:2px;">{{ profDoneCount }} of 4 watched · tap a lesson to play</div></sc-if>
+                  </div>
+                </div>
+                <sc-for list="{{ trainModules }}" as="m" hint-placeholder-count="4">
+                  <button onClick="{{ m.open }}" style="width:100%; text-align:left; display:flex; align-items:center; gap:13px; background:#fff; border:1px solid #E4EAE5; border-radius:14px; padding:15px 16px; margin-bottom:10px; cursor:pointer; font-family:inherit;">
+                    <span style="{{ m.markStyle }}">{{ m.markEl }}</span>
+                    <div style="flex:1;"><div style="font-size:14px; font-weight:800;">{{ m.name }}</div><div style="font-size:12px; color:#8A9990;">{{ m.sub }}</div></div>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C3CFC6" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- SUPPORT & SETTINGS ---------- -->
+          <sc-if value="{{ is.support }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.profile }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">Support &amp; settings</span></div>
+              <div style="padding:16px 16px 24px;">
+                <div style="font-size:12px; font-weight:800; color:#8A9990; text-transform:uppercase; letter-spacing:.5px; margin:2px 2px 10px;">Notifications</div>
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; padding:4px 16px; margin-bottom:20px;">
+                  <sc-for list="{{ settingsToggles }}" as="t" hint-placeholder-count="5">
+                    <div style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid #F1F4F0;"><div style="flex:1;"><div style="font-size:14px; font-weight:700;">{{ t.label }}</div><div style="font-size:12px; color:#8A9990;">{{ t.sub }}</div></div><button onClick="{{ t.toggle }}" style="{{ t.track }}"><span style="{{ t.knob }}"></span></button></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:12px; font-weight:800; color:#8A9990; text-transform:uppercase; letter-spacing:.5px; margin:2px 2px 10px;">Language</div>
+                <div style="display:flex; gap:8px; margin-bottom:20px;"><sc-for list="{{ langOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+                <div style="font-size:12px; font-weight:800; color:#8A9990; text-transform:uppercase; letter-spacing:.5px; margin:2px 2px 10px;">Get help</div>
+                <div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; overflow:hidden; margin-bottom:14px;">
+                  <sc-for list="{{ helpActions }}" as="h" hint-placeholder-count="3">
+                    <button onClick="{{ h.go }}" style="width:100%; display:flex; align-items:center; gap:13px; padding:14px 16px; border:none; border-bottom:1px solid #F1F4F0; background:none; cursor:pointer; font-family:inherit; text-align:left;"><span style="{{ h.iconBg }}">{{ h.iconEl }}</span><span style="flex:1;"><span style="display:block; font-size:14px; font-weight:700;">{{ h.label }}</span><span style="display:block; font-size:12px; color:#8A9990;">{{ h.sub }}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C3CFC6" stroke-width="2" stroke-linecap="round"/></svg></button>
+                  </sc-for>
+                  <button onClick="{{ nav.faqs }}" style="width:100%; display:flex; align-items:center; gap:13px; padding:14px 16px; border:none; background:none; cursor:pointer; font-family:inherit; text-align:left;"><span style="width:38px; height:38px; border-radius:11px; background:#EFF3EE; display:flex; align-items:center; justify-content:center; flex:0 0 auto; font-size:18px; font-weight:800; color:#5E6E63;">?</span><span style="flex:1; font-size:14px; font-weight:700;">FAQs</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C3CFC6" stroke-width="2" stroke-linecap="round"/></svg></button>
+                </div>
+                <div style="text-align:center; font-size:11.5px; color:#9AA89E; margin:14px 0 16px;">{{ appVersion }}</div>
+                <button onClick="{{ onLogout }}" style="width:100%; height:52px; border:1px solid #F0D2D2; border-radius:14px; background:#fff; color:#D64545; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10" stroke="#D64545" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Logout</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- CHAT WITH SUPPORT ---------- -->
+          <sc-if value="{{ is.chat }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; display:flex; flex-direction:column; background:#F0F4EF;">
+              <div style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:#123B22; color:#fff;">
+                <button onClick="{{ nav.support }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <img src="assets/selorg-logo.jpg" alt="Selorg" style="width:40px; height:40px; border-radius:16px; object-fit:cover; background:#fff;">
+                <div style="flex:1;"><div style="font-size:15px; font-weight:800;">Selorg Support</div><div style="font-size:11.5px; color:#8CE0A3; display:flex; align-items:center; gap:5px;"><span style="width:6px; height:6px; border-radius:50%; background:#8CE0A3;"></span>Online · replies in ~5 min</div></div>
+              </div>
+              <div id="chatScroll" style="flex:1; overflow-y:auto; padding:18px 16px;">
+                <div style="text-align:center; font-size:11px; color:#9AA89E; margin-bottom:16px;">Today</div>
+                <sc-for list="{{ chatMsgs }}" as="m" hint-placeholder-count="1">
+                  <div style="{{ m.rowStyle }}"><div><div style="{{ m.bubbleStyle }}">{{ m.text }}</div><div style="{{ m.timeStyle }}">{{ m.time }}</div></div></div>
+                </sc-for>
+                <sc-if value="{{ chatTyping }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; justify-content:flex-start; margin-bottom:12px;"><div style="background:#fff; border:1px solid #E4EAE5; border-radius:16px; border-bottom-left-radius:5px; padding:13px 16px; display:flex; gap:4px;"><span style="width:7px; height:7px; border-radius:50%; background:#B7C2B9; animation:blink 1s infinite;"></span><span style="width:7px; height:7px; border-radius:50%; background:#B7C2B9; animation:blink 1s infinite .2s;"></span><span style="width:7px; height:7px; border-radius:50%; background:#B7C2B9; animation:blink 1s infinite .4s;"></span></div></div>
+                </sc-if>
+              </div>
+              <div style="padding:10px 14px; background:#F0F4EF; border-top:1px solid #E0E7DF;">
+                <div style="display:flex; gap:7px; overflow-x:auto; margin-bottom:10px;">
+                  <sc-for list="{{ chatQuick }}" as="q" hint-placeholder-count="3"><button onClick="{{ q.go }}" style="flex:0 0 auto; border:1px solid #CFDCD0; background:#fff; color:#1E8E43; font-size:12px; font-weight:700; padding:8px 13px; border-radius:20px; cursor:pointer; font-family:inherit; white-space:nowrap;">{{ q.label }}</button></sc-for>
+                </div>
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <input value="{{ chatInputField.val }}" onChange="{{ chatInputField.on }}" placeholder="Type a message…" style="flex:1; height:48px; border:1px solid #D8E0D8; border-radius:24px; background:#fff; padding:0 18px; font-size:14px; color:#16231B; font-family:inherit; outline:none; box-sizing:border-box;" style-focus="border-color:#1E8E43;">
+                  <button onClick="{{ onSendChat }}" style="width:48px; height:48px; flex:0 0 auto; border:none; border-radius:50%; background:#1E8E43; display:flex; align-items:center; justify-content:center; cursor:pointer;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-7-7 16-2-6-7-3Z" stroke="#fff" stroke-width="1.9" stroke-linejoin="round"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- FAQs ---------- -->
+          <sc-if value="{{ is.faqs }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%; background:#F3F6F2;">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; background:#fff; border-bottom:1px solid #EEF2ED;"><button onClick="{{ nav.support }}" style="border:none; background:none; cursor:pointer; padding:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#16231B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span style="font-size:17px; font-weight:700;">FAQs</span></div>
+              <div style="padding:16px 16px 24px;">
+                <sc-for list="{{ faqItems }}" as="f" hint-placeholder-count="5">
+                  <div style="background:#fff; border:1px solid #E4EAE5; border-radius:14px; padding:0 16px; margin-bottom:10px;">
+                    <button onClick="{{ f.toggle }}" style="width:100%; display:flex; align-items:center; gap:12px; padding:16px 0; border:none; background:none; cursor:pointer; font-family:inherit; text-align:left;"><span style="flex:1; font-size:14px; font-weight:700; color:#16231B;">{{ f.q }}</span><span style="width:24px; height:24px; border-radius:50%; background:#EFF3EE; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; color:#1E8E43; flex:0 0 auto;">{{ f.chev }}</span></button>
+                    <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color:#5E6E63; line-height:1.6; padding:0 0 16px;">{{ f.a }}</div></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- SCREENS_END -->
+
+        </div>
+
+        <!-- ============ SHIFT VERIFY OVERLAY ============ -->
+        <sc-if value="{{ shiftOverlay }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; inset:0; background:rgba(14,26,18,.5); z-index:40; display:flex; flex-direction:column; justify-content:flex-end;">
+            <div style="background:#fff; border-radius:26px 26px 0 0; padding:24px 22px 30px; animation:sheetUp .28s ease;">
+              <div style="width:44px; height:5px; border-radius:3px; background:#DDE4DD; margin:0 auto 20px;"></div>
+              <!-- location step -->
+              <sc-if value="{{ sLocation }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="width:80px; height:80px; border-radius:22px; background:#EAF5EC; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;"><svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" stroke="#1E8E43" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#1E8E43" stroke-width="2"/></svg></div>
+                  <div style="font-size:20px; font-weight:800; margin-bottom:8px;">Verify your location</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:8px;">Checking you're within <b>150 m</b> of Indiranagar Darkstore.</div>
+                  <div style="display:inline-flex; align-items:center; gap:8px; background:#EAF5EC; color:#1E8E43; font-size:13px; font-weight:700; padding:9px 16px; border-radius:11px; margin-bottom:22px;"><span style="width:8px; height:8px; border-radius:50%; background:#1E8E43;"></span>You're on site · ±8 m accuracy</div>
+                  <button onClick="{{ act.locNext }}" style="width:100%; height:52px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer;">Location verified · Continue</button>
+                  <button onClick="{{ act.closeSheet }}" style="width:100%; height:44px; border:none; background:none; color:#8A9990; font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:6px;">Cancel</button>
+                </div>
+              </sc-if>
+              <!-- identity step -->
+              <sc-if value="{{ sIdentity }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <div style="text-align:center; font-size:20px; font-weight:800; margin-bottom:6px;">Verify your identity</div>
+                  <div style="text-align:center; font-size:13.5px; color:#5E6E63; margin-bottom:22px;">Choose a method to confirm it's you</div>
+                  <button onClick="{{ act.idFace }}" style="width:100%; display:flex; align-items:center; gap:14px; background:#F6F8F5; border:1px solid #E4EAE5; border-radius:16px; padding:16px; margin-bottom:12px; cursor:pointer; font-family:inherit;">
+                    <span style="width:48px; height:48px; border-radius:13px; background:#EAF5EC; display:flex; align-items:center; justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke="#1E8E43" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="11" r="2.4" stroke="#1E8E43" stroke-width="1.8"/><path d="M8 16.5c1-1.4 2.4-2 4-2s3 .6 4 2" stroke="#1E8E43" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                    <span style="flex:1; text-align:left;"><span style="display:block; font-size:15px; font-weight:800;">Face verification</span><span style="display:block; font-size:12.5px; color:#5E6E63;">Recommended · fastest</span></span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#9AA89E" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+                  <button onClick="{{ act.idFace }}" style="width:100%; display:flex; align-items:center; gap:14px; background:#F6F8F5; border:1px solid #E4EAE5; border-radius:16px; padding:16px; cursor:pointer; font-family:inherit;">
+                    <span style="width:48px; height:48px; border-radius:13px; background:#EFF3EE; display:flex; align-items:center; justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4c-3 0-5 2-5 5v2M12 4c3 0 5 2 5 5v6M9.5 11v4M14.5 12v3M12 9v9" stroke="#5E6E63" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                    <span style="flex:1; text-align:left;"><span style="display:block; font-size:15px; font-weight:800;">Fingerprint</span><span style="display:block; font-size:12.5px; color:#5E6E63;">Use device biometrics</span></span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#9AA89E" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+                </div>
+              </sc-if>
+              <!-- face step -->
+              <sc-if value="{{ sFace }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="font-size:20px; font-weight:800; margin-bottom:18px;">Scanning your face…</div>
+                  <div style="width:180px; height:180px; border-radius:50%; margin:0 auto 20px; background:#EAF5EC; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <div style="position:absolute; inset:0; border-radius:50%; border:3px solid #1E8E43; border-top-color:transparent; animation:spin 1.2s linear infinite;"></div>
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="4" stroke="#1E8E43" stroke-width="1.6"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="#1E8E43" stroke-width="1.6" stroke-linecap="round"/></svg>
+                  </div>
+                  <div style="font-size:13.5px; color:#5E6E63; margin-bottom:22px;">Hold still and keep your face in the circle</div>
+                  <button onClick="{{ act.faceNext }}" style="width:100%; height:52px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer;">Simulate success</button>
+                </div>
+              </sc-if>
+              <!-- success step -->
+              <sc-if value="{{ sSuccess }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;">
+                  <div style="width:92px; height:92px; border-radius:50%; background:#EAF5EC; display:flex; align-items:center; justify-content:center; margin:0 auto 18px;"><svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#1E8E43"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <div style="font-size:21px; font-weight:800; margin-bottom:8px;">Verified, Rahul!</div>
+                  <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:22px;">Location & face confirmed at Indiranagar Darkstore. Ready to start your shift.</div>
+                  <button onClick="{{ act.startWork }}" style="width:100%; height:52px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer;">Start work</button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ LOGOUT CONFIRM ============ -->
+        <sc-if value="{{ confirmLogout }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; inset:0; background:rgba(14,26,18,.5); z-index:50; display:flex; align-items:center; justify-content:center; padding:28px;">
+            <div style="background:#fff; border-radius:22px; padding:26px 22px; width:100%; text-align:center; animation:sheetUp .22s ease;">
+              <div style="width:64px; height:64px; border-radius:50%; background:#FBE9E9; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10" stroke="#D64545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div style="font-size:19px; font-weight:800; margin-bottom:6px;">Log out?</div>
+              <div style="font-size:13.5px; color:#5E6E63; line-height:1.6; margin-bottom:22px;">You'll need your mobile number and OTP to sign back in.</div>
+              <div style="display:flex; gap:10px;">
+                <button onClick="{{ onLogoutCancel }}" style="flex:1; height:50px; border:1px solid #D8E0D8; border-radius:13px; background:#fff; color:#16231B; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;">Cancel</button>
+                <button onClick="{{ onLogoutConfirm }}" style="flex:1; height:50px; border:none; border-radius:13px; background:#D64545; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer;">Log out</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ DEVICE ISSUE SHEET ============ -->
+        <sc-if value="{{ deviceSheet }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; inset:0; background:rgba(14,26,18,.5); z-index:50; display:flex; flex-direction:column; justify-content:flex-end;">
+            <div style="background:#fff; border-radius:26px 26px 0 0; padding:22px 22px 28px; animation:sheetUp .28s ease;">
+              <div style="width:44px; height:5px; border-radius:3px; background:#DDE4DD; margin:0 auto 18px;"></div>
+              <div style="font-size:19px; font-weight:800; margin-bottom:4px;">Report a device issue</div>
+              <div style="font-size:13px; color:#5E6E63; margin-bottom:20px;">Pick what's wrong with HHD-2231</div>
+              <sc-for list="{{ deviceReasons }}" as="r" hint-placeholder-count="5">
+                <button onClick="{{ r.go }}" style="{{ r.style }}"><span style="{{ r.dot }}"><span style="{{ r.inner }}"></span></span><span style="font-size:14px; font-weight:700; color:#16231B;">{{ r.reason }}</span></button>
+              </sc-for>
+              <button onClick="{{ onDeviceSubmit }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer; margin-top:8px;">Submit report</button>
+              <button onClick="{{ onDeviceClose }}" style="width:100%; height:44px; border:none; background:none; color:#8A9990; font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:4px;">Cancel</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ TRAINING VIDEO PLAYER ============ -->
+        <sc-if value="{{ videoOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; inset:0; background:rgba(8,16,10,.85); z-index:70; display:flex; flex-direction:column; justify-content:center; padding:20px;">
+            <button onClick="{{ onCloseVideo }}" style="position:absolute; top:18px; right:18px; width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,.16); color:#fff; font-size:20px; cursor:pointer; font-family:inherit;">✕</button>
+            <div style="border-radius:18px; overflow:hidden; background:#000;">
+              <div style="position:relative; aspect-ratio:16/9; background:linear-gradient(135deg,#123B22,#0A2415); display:flex; align-items:center; justify-content:center;">
+                <button onClick="{{ onToggleVideoPlay }}" style="width:74px; height:74px; border-radius:50%; border:none; background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                  <sc-if value="{{ videoPlaying }}" hint-placeholder-val="{{ true }}"><svg width="30" height="30" viewBox="0 0 24 24" fill="#123B22"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></sc-if>
+                  <sc-if value="{{ videoPaused }}" hint-placeholder-val="{{ false }}"><svg width="30" height="30" viewBox="0 0 24 24" fill="#123B22"><path d="M8 5v14l11-7z"/></svg></sc-if>
+                </button>
+                <div style="position:absolute; top:14px; left:16px; color:rgba(255,255,255,.85); font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;">Selorg Training</div>
+              </div>
+              <div style="background:#111; padding:14px 16px;">
+                <div style="height:6px; background:rgba(255,255,255,.18); border-radius:3px; overflow:hidden; margin-bottom:10px;"><div style="{{ videoProgressStyle }}"></div></div>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span style="color:#fff; font-size:13.5px; font-weight:700;">{{ videoTitle }}</span>
+                  <span style="color:rgba(255,255,255,.6); font-size:12px; font-family:'JetBrains Mono',monospace;">{{ videoTimeLabel }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ COLLECT DEVICE SHEET ============ -->
+        <sc-if value="{{ collectSheet }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; inset:0; background:rgba(14,26,18,.5); z-index:50; display:flex; flex-direction:column; justify-content:flex-end;">
+            <div style="background:#fff; border-radius:26px 26px 0 0; padding:22px 22px 28px; animation:sheetUp .28s ease;">
+              <div style="width:44px; height:5px; border-radius:3px; background:#DDE4DD; margin:0 auto 18px;"></div>
+              <div style="font-size:19px; font-weight:800; margin-bottom:4px;">Collect your device</div>
+              <div style="font-size:13px; color:#5E6E63; margin-bottom:18px;">Ask your hub manager for a collection OTP, then confirm handover of HHD-2231.</div>
+              <div style="background:#123B22; border-radius:16px; padding:16px; color:#fff; margin-bottom:16px; display:flex; align-items:center; gap:13px;">
+                <div style="width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="#fff" stroke-width="1.8"/><path d="M10.5 18h3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+                <div><div style="font-size:16px; font-weight:800;">HHD-2231</div><div style="font-size:12px; color:rgba(255,255,255,.75);">Zebra TC21 · assigned to you</div></div>
+              </div>
+              <sc-if value="{{ obMgrSent }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Manager OTP</div>
+                <input value="{{ obMgrField.val }}" onChange="{{ obMgrField.on }}" inputmode="numeric" maxlength="4" placeholder="4-digit code" style="width:100%; height:52px; border:1.5px solid #D8E0D8; border-radius:12px; background:#fff; padding:0 14px; font-size:18px; font-weight:700; letter-spacing:6px; color:#16231B; font-family:'JetBrains Mono',monospace; outline:none; box-sizing:border-box; margin-bottom:14px;" style-focus="border-color:#1E8E43;">
+              </sc-if>
+              <sc-if value="{{ obMgrNotSent }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ onRequestMgrOtp }}" style="width:100%; height:52px; border:1px solid #1E8E43; border-radius:12px; background:#fff; color:#1E8E43; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; margin-bottom:14px;">Request collection OTP</button>
+              </sc-if>
+              <button onClick="{{ onToggleAck }}" style="width:100%; display:flex; align-items:center; gap:13px; background:#fff; border:1.5px solid #E4EAE5; border-radius:14px; padding:15px; cursor:pointer; font-family:inherit; text-align:left; margin-bottom:16px;">
+                <span style="{{ obAckBox }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span style="font-size:13.5px; font-weight:700; color:#16231B;">I've received HHD-2231 in working condition</span>
+              </button>
+              <button onClick="{{ onConfirmCollect }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer;">Confirm collection</button>
+              <button onClick="{{ onCloseCollect }}" style="width:100%; height:44px; border:none; background:none; color:#8A9990; font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:4px;">Cancel</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ WITHDRAW SHEET ============ -->
+        <sc-if value="{{ wdSheet }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; inset:0; background:rgba(14,26,18,.5); z-index:50; display:flex; flex-direction:column; justify-content:flex-end;">
+            <div style="background:#fff; border-radius:26px 26px 0 0; padding:22px 22px 28px; animation:sheetUp .28s ease;">
+              <div style="width:44px; height:5px; border-radius:3px; background:#DDE4DD; margin:0 auto 18px;"></div>
+              <div style="font-size:19px; font-weight:800; margin-bottom:4px;">Withdraw earnings</div>
+              <div style="font-size:13px; color:#5E6E63; margin-bottom:20px;">Available balance: <b style="color:#16231B;">₹4,850</b></div>
+              <div style="font-size:12px; font-weight:600; color:#5E6E63; margin-bottom:6px;">Amount (₹)</div>
+              <input value="{{ wdAmount }}" onChange="{{ onWdAmount }}" inputmode="numeric" placeholder="Min ₹100" style="width:100%; height:54px; border:1.5px solid #D8E0D8; border-radius:12px; background:#fff; padding:0 14px; font-size:20px; font-weight:800; color:#16231B; font-family:'JetBrains Mono',monospace; outline:none; box-sizing:border-box; margin-bottom:14px;" style-focus="border-color:#1E8E43;">
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#F6F8F5; border:1px solid #E4EAE5; border-radius:12px; padding:14px; margin-bottom:8px;"><span style="font-size:13px; color:#5E6E63;">To bank account</span><span style="font-size:13px; font-weight:800;">{{ wdBank }}</span></div>
+              <div style="font-size:11.5px; color:#8A9990; line-height:1.5; margin-bottom:18px;">Withdrawals are reviewed and paid per the payout schedule. Status: Pending → Approved → Paid.</div>
+              <button onClick="{{ onSubmitWithdraw }}" style="width:100%; height:54px; border:none; border-radius:14px; background:#1E8E43; color:#fff; font-size:15px; font-weight:800; font-family:inherit; cursor:pointer;">Confirm withdrawal</button>
+              <button onClick="{{ onCloseWithdraw }}" style="width:100%; height:44px; border:none; background:none; color:#8A9990; font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:4px;">Cancel</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ TOAST ============ -->
+        <sc-if value="{{ toastShow }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; left:50%; bottom:100px; transform:translateX(-50%); background:#16231B; color:#fff; font-size:13px; font-weight:700; padding:12px 20px; border-radius:13px; z-index:60; box-shadow:0 12px 32px rgba(0,0,0,.3); display:flex; align-items:center; gap:9px; white-space:nowrap; max-width:88%;">
+            <span style="width:18px; height:18px; border-radius:50%; background:#1E8E43; display:flex; align-items:center; justify-content:center; flex:0 0 auto;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>{{ toastMsg }}
+          </div>
+        </sc-if>
+
+        <!-- ============ BOTTOM TAB BAR ============ -->
+        <sc-if value="{{ tabScreen }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:0 0 auto; height:76px; background:#fff; border-top:1px solid #EAEEE9; display:flex; padding:8px 6px 18px; z-index:20;">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+              <button onClick="{{ t.go }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:none; background:none; cursor:pointer; font-family:inherit;">
+                <span style="color:{{ t.col }};">{{ t.iconEl }}</span>
+                <span style="font-size:10.5px; font-weight:{{ t.weight }}; color:{{ t.col }};">{{ t.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'login', atab: 'details', ptab: 'metrics', shiftStep: 'none', shiftActive: false, elapsed: 0, dataState: 'normal',
+    channel: 'mobile', loginPhone: '', loginEmail: '', agree: false, otp: '', resendIn: 0,
+    edit: { name: 'Rahul Verma', dob: '12 / 08 / 1996', gender: 'Male', email: 'rahul.verma@gmail.com' },
+    personal: { altPhone: '', address: '80 Ft Rd, HAL 2nd Stage', city: 'Bengaluru', pincode: '560038', emgName: 'Sunita Verma', emgPhone: '9876500000', emgRel: 'Parent' },
+    bank: { holder: 'Rahul Verma', bank: 'HDFC Bank', acc: '50100234567821', ifsc: 'HDFC0001234' },
+    settings: { push: true, shiftRem: true, payout: true, incentive: false, sound: true },
+    lang: 'English', faqOpen: -1, toast: null, confirmLogout: false, deviceSheet: false, deviceReason: '',
+    obStep: 1,
+    obProfile: { name: '', dob: '', gender: 'Male' },
+    obLocType: '', obLocation: '', obShift: '',
+    obKyc: { aadhaar: '', pan: '' },
+    obTrainDone: [false, false, false, false],
+    obFaceDone: false,
+    obBank: { holder: '', bank: '', acc: '', ifsc: '' },
+    obMgrOtp: '', obMgrSent: false, obDeviceAck: false,
+    collectSheet: false, deviceCollected: false,
+    videoOpen: false, videoScope: '', videoIdx: -1, videoTitle: '', videoPlaying: false, videoProgress: 0,
+    profTrainDone: [false, false, false, false],
+    chatMsgs: [
+      { who: 'agent', text: 'Hi Rahul 👋 I\u2019m Anita from Selorg support. How can I help you today?', time: '10:24' },
+    ],
+    chatInput: '', chatTyping: false,
+    gate: 'review',
+    wdSheet: false, wdAmount: '', wdBank: 'HDFC ••7821', wdKey: null,
+    attempts: { edit: false, personal: false, bank: false, obProfile: false, obKyc: false, obBank: false },
+  };
+
+  FIELDS = {
+    edit: [['name', { req: true }], ['dob', {}], ['email', { email: true }]],
+    personal: [['altPhone', { phone: true }], ['address', { req: true, multiline: true }], ['city', { req: true }], ['pincode', { pin: true }], ['emgName', { req: true }], ['emgPhone', { req: true, phone: true }]],
+    bank: [['holder', { req: true }], ['bank', { req: true }], ['acc', { req: true }], ['ifsc', { req: true }]],
+    obProfile: [['name', { req: true }], ['dob', { req: true }]],
+    obKyc: [['aadhaar', { req: true, aadhaar: true }], ['pan', { req: true, pan: true }]],
+    obBank: [['holder', { req: true }], ['bank', { req: true }], ['acc', { req: true }], ['ifsc', { req: true }]],
+  };
+
+  componentDidMount() {
+    this._t = setInterval(() => {
+      if (this.state.shiftActive) this.setState(s => ({ elapsed: s.elapsed + 1 }));
+      if (this.state.resendIn > 0) this.setState(s => ({ resendIn: Math.max(0, s.resendIn - 1) }));
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  go(screen) { this.setState({ screen, dataState: 'normal', shiftStep: 'none' }); const vp = this.el && this.el.querySelector('.vp'); if (vp) vp.scrollTop = 0; }
+  loginTab(key, label) {
+    const active = this.state.channel === key;
+    return { label, style: 'flex:1; text-align:center; padding:9px; border-radius:9px; border:none; cursor:pointer; font-family:inherit; font-size:13px; font-weight:' + (active ? '700' : '600') + '; color:' + (active ? '#1E8E43' : '#5E6E63') + '; background:' + (active ? '#fff' : 'transparent') + '; box-shadow:' + (active ? '0 1px 3px rgba(0,0,0,.06)' : 'none') + ';', go: () => this.setState({ channel: key }) };
+  }
+  loginContactOk() { return this.state.channel === 'email' ? /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.state.loginEmail.trim()) : /^\d{10}$/.test(this.state.loginPhone); }
+  sendOtp() {
+    if (this.state.channel === 'email') { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.state.loginEmail.trim())) { this.toast('Enter a valid email address'); return; } }
+    else if (!/^\d{10}$/.test(this.state.loginPhone)) { this.toast('Enter a 10-digit mobile number'); return; }
+    if (!this.state.agree) { this.toast('Please accept the Terms to continue'); return; }
+    this.setState({ otp: '', resendIn: 24 }); this.go('otp');
+  }
+  verifyOtp() { if (!/^\d{4}$/.test(this.state.otp)) { this.toast('Enter the 4-digit OTP'); return; } this.setState({ obStep: 1 }); this.go('onboarding'); }
+  resendOtp() { if (this.state.resendIn > 0) return; this.setState({ resendIn: 24, otp: '' }); this.toast('OTP resent'); }
+  fmt(s) {
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), c = s % 60;
+    const p = n => String(n).padStart(2, '0');
+    return p(h) + ':' + p(m) + ':' + p(c);
+  }
+
+  // ---- forms & validation ----
+  computeErr(val, opts) {
+    const v = String(val ?? '').trim();
+    if (opts.req && !v) return 'This field is required';
+    if (!v) return '';
+    if (opts.phone && !/^\d{10}$/.test(v.replace(/\s/g, ''))) return 'Enter a valid 10-digit number';
+    if (opts.pin && !/^\d{6}$/.test(v)) return 'Enter a 6-digit pincode';
+    if (opts.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return 'Enter a valid email address';
+    if (opts.aadhaar && !/^\d{12}$/.test(v.replace(/\s/g, ''))) return 'Enter a 12-digit Aadhaar number';
+    if (opts.pan && !/^[A-Z]{5}\d{4}[A-Z]$/.test(v.toUpperCase())) return 'Enter a valid PAN (ABCDE1234F)';
+    return '';
+  }
+  mkField(section, key, opts) {
+    const s = this.state[section] || {};
+    const val = s[key] ?? '';
+    const err = this.state.attempts[section] ? this.computeErr(val, opts) : '';
+    const border = err ? '#D64545' : '#D8E0D8';
+    const multiline = opts.multiline;
+    const style = 'width:100%; ' + (multiline ? 'min-height:88px; padding:12px 14px;' : 'height:50px; padding:0 14px;') + ' border:1.5px solid ' + border + '; border-radius:12px; background:#fff; font-size:15px; font-weight:600; color:#16231B; font-family:inherit; outline:none; resize:none; box-sizing:border-box;';
+    return { val, err, hasErr: !!err, style, on: e => { const v = e.target.value; this.setState(st => ({ [section]: { ...st[section], [key]: v } })); } };
+  }
+  buildFields(section) { const o = {}; (this.FIELDS[section] || []).forEach(([k, opts]) => o[k] = this.mkField(section, k, opts)); return o; }
+  save(section, back) {
+    this.setState(st => ({ attempts: { ...st.attempts, [section]: true } }), () => {
+      const spec = this.FIELDS[section] || []; const s = this.state[section] || {};
+      const ok = spec.every(([k, opts]) => !this.computeErr(s[k], opts));
+      if (ok) { this.setState(st => ({ attempts: { ...st.attempts, [section]: false } })); this.toast('Changes saved'); this.go(back); }
+      else this.toast('Please fix the highlighted fields');
+    });
+  }
+  toast(msg) { this.setState({ toast: msg }); clearTimeout(this._toast); this._toast = setTimeout(() => this.setState({ toast: null }), 2200); }
+
+  segStyle(active) { return 'flex:1; height:46px; border:1.5px solid ' + (active ? '#1E8E43' : '#D8E0D8') + '; background:' + (active ? '#EAF5EC' : '#fff') + '; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:' + (active ? '800' : '600') + '; color:' + (active ? '#1E8E43' : '#5E6E63') + '; cursor:pointer; font-family:inherit;'; }
+  segOpt(section, key, label) { const active = (this.state[section] || {})[key] === label; return { label, style: this.segStyle(active), go: () => this.setState(st => ({ [section]: { ...st[section], [key]: label } })) }; }
+  segOpt2(key, label) { const active = this.state[key] === label; return { label, style: this.segStyle(active), go: () => this.setState({ [key]: label }) }; }
+  toggleRow(key, label, sub) {
+    const on = this.state.settings[key];
+    const track = 'width:46px; height:28px; border-radius:15px; background:' + (on ? '#1E8E43' : '#CBD5CD') + '; position:relative; transition:background .2s; flex:0 0 auto; cursor:pointer; border:none;';
+    const knob = 'position:absolute; top:3px; left:' + (on ? '21px' : '3px') + '; width:22px; height:22px; border-radius:50%; background:#fff; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.25);';
+    return { label, sub, track, knob, toggle: () => this.setState(st => ({ settings: { ...st.settings, [key]: !st.settings[key] } })) };
+  }
+  faq(i, q, a) { const open = this.state.faqOpen === i; return { q, a, open, chev: open ? '−' : '+', toggle: () => this.setState(st => ({ faqOpen: st.faqOpen === i ? -1 : i })) }; }
+  radioRow(reason) {
+    const active = this.state.deviceReason === reason;
+    const style = 'width:100%; display:flex; align-items:center; gap:12px; text-align:left; border:1.5px solid ' + (active ? '#1E8E43' : '#E4EAE5') + '; background:' + (active ? '#EAF5EC' : '#fff') + '; border-radius:13px; padding:14px; cursor:pointer; font-family:inherit; margin-bottom:10px;';
+    const dot = 'width:20px; height:20px; border-radius:50%; border:2px solid ' + (active ? '#1E8E43' : '#C3CFC6') + '; flex:0 0 auto; display:flex; align-items:center; justify-content:center;';
+    const inner = active ? 'width:10px; height:10px; border-radius:50%; background:#1E8E43;' : 'display:none;';
+    return { reason, style, dot, inner, go: () => this.setState({ deviceReason: reason }) };
+  }
+  // ---- onboarding wizard ----
+  obGate(sec) {
+    const spec = this.FIELDS[sec] || []; const s = this.state[sec] || {};
+    const ok = spec.every(([k, o]) => !this.computeErr(s[k], o));
+    if (!ok) { this.setState(st => ({ attempts: { ...st.attempts, [sec]: true } })); this.toast('Please fix the highlighted fields'); }
+    return ok;
+  }
+  obScrollTop() { const vp = this.el && this.el.querySelector('.vp'); if (vp) vp.scrollTop = 0; }
+  // Steps: 1 profile · 2 location-type · 3 work-location · 4 shift · 5 training · 6 documents · 7 face
+  //   → submit → under-review gate → 8 bank · 9 collect-device (manager OTP) → success
+  obNext() {
+    const step = this.state.obStep;
+    if (step === 1 && !this.obGate('obProfile')) return;
+    if (step === 2 && !this.state.obLocType) { this.toast('Choose a location type'); return; }
+    if (step === 3 && !this.state.obLocation) { this.toast('Select your work location'); return; }
+    if (step === 4 && !this.state.obShift) { this.toast('Select a shift'); return; }
+    if (step === 5 && !this.state.obTrainDone.every(Boolean)) { this.toast('Complete all training modules'); return; }
+    if (step === 6 && !this.obGate('obKyc')) return;
+    if (step === 7) { if (!this.state.obFaceDone) { this.toast('Complete face verification'); return; } this.obScrollTop(); this.go('status'); return; }
+    if (step === 8) { if (!this.obGate('obBank')) return; this.toast('Onboarding complete \u00b7 welcome aboard!'); this.go('home'); return; }
+    this.obScrollTop();
+    this.setState(st => ({ obStep: st.obStep + 1 }));
+  }
+  obBack() {
+    const step = this.state.obStep;
+    if (step === 8) { this.obScrollTop(); this.go('status'); return; }
+    if (step > 1) { this.obScrollTop(); this.setState(st => ({ obStep: st.obStep - 1 })); }
+    else this.go('otp');
+  }
+  obTrainToggle(i) { this.setState(st => { const a = st.obTrainDone.slice(); a[i] = !a[i]; return { obTrainDone: a }; }); }
+  openVideo(scope, i, title) {
+    clearInterval(this._vid);
+    this.setState({ videoOpen: true, videoScope: scope, videoIdx: i, videoTitle: title, videoPlaying: true, videoProgress: 0 });
+    this._vid = setInterval(() => {
+      if (!this.state.videoPlaying) return;
+      const p = this.state.videoProgress + 100 / 60; // ~6s clip
+      if (p >= 100) {
+        clearInterval(this._vid);
+        this.setState({ videoProgress: 100, videoPlaying: false });
+        this.markVideoDone(this.state.videoScope, this.state.videoIdx);
+      } else {
+        this.setState({ videoProgress: p });
+      }
+    }, 100);
+  }
+  nowTime() { const d = new Date(); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); }
+  sendChat() {
+    const t = this.state.chatInput.trim();
+    if (!t) return;
+    this.setState(st => ({ chatMsgs: [...st.chatMsgs, { who: 'me', text: t, time: this.nowTime() }], chatInput: '', chatTyping: true }), () => this.chatScrollBottom());
+    clearTimeout(this._chat);
+    this._chat = setTimeout(() => {
+      this.setState(st => ({ chatMsgs: [...st.chatMsgs, { who: 'agent', text: 'Thanks, I\u2019ve noted that. A support agent will follow up shortly — is there anything else I can help with?', time: this.nowTime() }], chatTyping: false }), () => this.chatScrollBottom());
+    }, 1400);
+  }
+  quickChat(t) { this.setState({ chatInput: t }, () => this.sendChat()); }
+  chatScrollBottom() { const b = this.el && this.el.querySelector('#chatScroll'); if (b) b.scrollTop = b.scrollHeight; }
+  markVideoDone(scope, i) {
+    if (scope === 'ob') { if (!this.state.obTrainDone[i]) this.obTrainToggle(i); }
+    else { this.setState(st => { if (st.profTrainDone[i]) return null; const a = st.profTrainDone.slice(); a[i] = true; return { profTrainDone: a }; }); }
+  }
+  fmtVid(p) { const tot = 6; const c = Math.round(tot * Math.min(100, p) / 100); const f = n => '0:' + String(n).padStart(2, '0'); return f(c) + ' / ' + f(tot); }
+  toggleVideoPlay() { this.setState(s => ({ videoPlaying: !s.videoPlaying })); }
+  closeVideo() { clearInterval(this._vid); this.setState({ videoOpen: false, videoPlaying: false }); }
+  radioSel(key, value, title, sub) {
+    const active = this.state[key] === value;
+    const style = 'width:100%; display:flex; align-items:center; gap:12px; text-align:left; border:1.5px solid ' + (active ? '#1E8E43' : '#E4EAE5') + '; background:' + (active ? '#EAF5EC' : '#fff') + '; border-radius:14px; padding:15px 16px; cursor:pointer; font-family:inherit; margin-bottom:10px;';
+    const dot = 'width:20px; height:20px; border-radius:50%; border:2px solid ' + (active ? '#1E8E43' : '#C3CFC6') + '; flex:0 0 auto; display:flex; align-items:center; justify-content:center;';
+    const inner = active ? 'width:10px; height:10px; border-radius:50%; background:#1E8E43;' : 'display:none;';
+    return { title, sub, style, dot, inner, go: () => this.setState({ [key]: value }) };
+  }
+  gateBtn(key, label) {
+    const active = this.state.gate === key;
+    const style = 'border:1px solid ' + (active ? '#1E8E43' : '#D8E0D8') + '; background:' + (active ? '#1E8E43' : '#fff') + '; color:' + (active ? '#fff' : '#5E6E63') + '; font-size:11px; font-weight:700; padding:6px 11px; border-radius:8px; cursor:pointer; font-family:inherit;';
+    return { label, style, go: () => this.setState({ gate: key }) };
+  }
+  // wallet withdraw — single-flight via idempotencyKey (18 §must-not-double-call)
+  openWithdraw() { this.setState({ wdSheet: true, wdAmount: '', wdKey: 'wd_' + Date.now() }); }
+  submitWithdraw() {
+    const amt = parseInt(this.state.wdAmount, 10);
+    if (!amt || amt < 100) { this.toast('Enter an amount of \u20b9100 or more'); return; }
+    if (amt > 4850) { this.toast('Amount exceeds available balance'); return; }
+    this.setState({ wdSheet: false });
+    this.toast('Withdrawal requested \u00b7 status: Pending');
+  }
+
+  icon(name, color, sw, size) {
+    const s = sw || 2;
+    const P = { fill: 'none', stroke: color, 'stroke-width': s, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+    const svg = ch => React.createElement('svg', { width: size || 24, height: size || 24, viewBox: '0 0 24 24', fill: 'none' }, ch);
+    const p = d => React.createElement('path', Object.assign({ d, key: d.slice(0, 7) }, P));
+    const rect = (x, y, w, h, rx) => React.createElement('rect', { key: 'rc' + x + y, x, y, width: w, height: h, rx, ...P });
+    const circ = (cx, cy, r, k) => React.createElement('circle', { key: k || 'c' + cx + cy, cx, cy, r, ...P });
+    const fp = d => React.createElement('path', { d, key: 'f', fill: color });
+    if (name === 'home') return svg([p('M4 11l8-7 8 7'), p('M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9')]);
+    if (name === 'cal') return svg([rect(3.5, 5, 17, 16, 2.5), p('M3.5 9.5h17'), p('M8 3v4M16 3v4')]);
+    if (name === 'target') return svg([circ(12, 12, 8), circ(12, 12, 3.4, 'b')]);
+    if (name === 'user') return svg([circ(12, 8.5, 4), p('M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6')]);
+    if (name === 'package') return svg([p('M4 8l8-4 8 4v8l-8 4-8-4V8Z'), p('M4 8l8 4 8-4M12 12v8')]);
+    if (name === 'zap') return svg([fp('M13 2L4.5 13H11l-1 9 8.5-11H12l1-9Z')]);
+    if (name === 'trophy') return svg([p('M7 4h10v4a5 5 0 0 1-10 0V4Z'), p('M9 14v2h6v-2M8 20h8'), p('M7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3')]);
+    if (name === 'clock') return svg([circ(12, 12, 9), p('M12 7.5V12l3 2')]);
+    if (name === 'card') return svg([rect(3, 6, 18, 13, 2.5), p('M3 10.5h18')]);
+    if (name === 'wallet') return svg([rect(3, 6, 18, 13, 2.5), p('M3 10h18'), circ(17, 14.5, 1.2, 'w')]);
+    if (name === 'file') return svg([p('M6 3h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z'), p('M14 3v4h4')]);
+    if (name === 'settings') return svg([circ(12, 12, 3), p('M12 3v3M12 18v3M4.2 7l2.6 1.5M17.2 15.5l2.6 1.5M4.2 17l2.6-1.5M17.2 8.5l2.6-1.5')]);
+    if (name === 'phone') return svg([rect(6, 3, 12, 18, 2.5), p('M10.5 18h3')]);
+    if (name === 'briefcase') return svg([rect(3, 8, 18, 12, 2.5), p('M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2')]);
+    if (name === 'alert') return svg([p('M12 3l9 16H3L12 3Z'), p('M12 10v4'), circ(12, 16.6, 0.6, 'a')]);
+    if (name === 'book') return svg([p('M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z'), p('M18 6v14')]);
+    if (name === 'check') return svg([p('M5 13l4 4L19 7')]);
+    if (name === 'dollar') return svg([p('M12 3v18M8 7.5h6a2.5 2.5 0 0 1 0 5H9a2.5 2.5 0 0 0 0 5h7')]);
+    if (name === 'box') return svg([rect(4, 5, 16, 15, 3), p('M8 3v4M16 3v4')]);
+    if (name === 'bell') return svg([p('M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z'), p('M10 20a2 2 0 0 0 4 0')]);
+    if (name === 'mail') return svg([rect(3, 5, 18, 14, 3), p('M4 7l8 6 8-6')]);
+    if (name === 'chat') return svg([p('M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4V6a1 1 0 0 1 1-1Z')]);
+    if (name === 'shield') return svg([p('M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z'), p('M9 12l2 2 4-4')]);
+    if (name === 'logout') return svg([p('M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10')]);
+    return svg([]);
+  }
+
+  iconBox(name, color, bg) {
+    return { icon: '', iconBg: 'width:38px; height:38px; border-radius:11px; background:' + bg + '; display:flex; align-items:center; justify-content:center; flex:0 0 auto;', iconEl: this.icon(name, color, 1.9, 20) };
+  }
+
+  attTab(key, label, name) {
+    const active = this.state.atab === key;
+    const style = 'flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:13px 0; border:none; border-bottom:2px solid ' + (active ? '#1E8E43' : 'transparent') + '; background:none; cursor:pointer; font-family:inherit; font-size:13.5px; font-weight:700; color:' + (active ? '#1E8E43' : '#9AA89E') + ';';
+    return { icon: '', label, style, iconEl: this.icon(name, active ? '#1E8E43' : '#9AA89E', 1.9, 18), go: () => this.setState({ atab: key }) };
+  }
+
+  buildCalendar() {
+    // March 2026 starts Sunday; 31 days. Present=green, half=amber (day 9), none on Sundays.
+    const cells = [];
+    for (let i = 0; i < 35; i++) {
+      const day = i + 1;
+      if (day > 31) { cells.push({ n: '', circle: '', dot: '' }); continue; }
+      const col = i % 7;
+      const sunday = col === 0;
+      const isHalf = day === 9;
+      const dotCol = sunday ? 'transparent' : isHalf ? '#E8A317' : '#1E8E43';
+      const sel = day === 14;
+      cells.push({
+        n: String(day),
+        circle: 'width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:' + (sel ? '700' : '500') + '; color:' + (sel ? '#fff' : '#16231B') + '; background:' + (sel ? '#1E8E43' : 'transparent') + ';',
+        dot: 'width:4px; height:4px; border-radius:50%; margin-top:2px; background:' + dotCol + ';',
+      });
+    }
+    return cells;
+  }
+
+  pmenu(name, color, bg, title, sub, target) {
+    return Object.assign(this.iconBox(name, color, bg), { title, sub, go: () => target ? this.go(target) : null });
+  }
+
+  perfCard(name, color, bg, value, label) {
+    return Object.assign(this.iconBox(name, color, bg), { value, label });
+  }
+
+  notif(name, color, bg, cardBg, title, body, time) {
+    return Object.assign(this.iconBox(name, color, bg), { bg: cardBg, title, body, time });
+  }
+
+  railBtn(key, label, tag, tone) {
+    const active = this.state.screen === key;
+    const base = 'width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; text-align:left; border:none; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600; padding:9px 11px; border-radius:10px; margin-bottom:3px; ';
+    const style = base + (active ? 'background:#1E8E43; color:#fff;' : 'background:transparent; color:#3A4A40;');
+    let tagStyle = 'display:none;', tagTxt = '';
+    if (tag === 'built') { tagTxt = '●'; tagStyle = 'font-size:8px; color:' + (active ? '#BFE6C9' : '#1E8E43') + ';'; }
+    else if (tag === 'flow') { tagTxt = '●'; tagStyle = 'font-size:8px; color:' + (active ? '#BFE6C9' : '#0E8F8A') + ';'; }
+    else if (tag === 'proposed') { tagTxt = 'NEW'; tagStyle = 'font-size:8.5px; font-weight:800; letter-spacing:.4px; color:' + (active ? '#fff' : '#E8A317') + '; background:' + (active ? 'rgba(255,255,255,.2)' : '#FCF2DC') + '; padding:1px 6px; border-radius:5px;'; }
+    return { label, tag: tagTxt, tagStyle, style, go: () => this.go(key) };
+  }
+
+
+  tab(key, label, name) {
+    const active = this.state.screen === key;
+    const col = active ? '#1E8E43' : '#9AA89E';
+    return { icon: '', label, col, weight: active ? '800' : '600', iconEl: this.icon(name, col, active ? 2.4 : 2), go: () => this.go(key) };
+  }
+
+  onbStep(n, label, done, current) {
+    const bg = done ? '#1E8E43' : current ? '#1E8E43' : '#EFF3EE';
+    const fg = (done || current) ? '#fff' : '#9AA89E';
+    const dot = 'width:30px; height:30px; border-radius:50%; background:' + bg + '; color:' + fg + '; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; border:' + (current ? '3px solid #C6E6CF' : 'none') + ';';
+    return { n: done ? '✓' : String(n), label, dot, col: (done || current) ? '#1E8E43' : '#9AA89E' };
+  }
+
+  reviewItem(label, status, done) {
+    const col = done ? '#1E8E43' : '#E8A317';
+    const icon = 'width:24px; height:24px; border-radius:50%; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; background:' + col + ';';
+    return { label, status, col, mark: done ? '✓' : '…', icon };
+  }
+
+  renderVals() {
+    const screen = this.state.screen;
+    const step = this.state.shiftStep;
+    const ds = this.state.dataState;
+    const tabKeys = ['home', 'attendance', 'performance', 'profile'];
+    const isKeys = ['login','otp','onboarding','status','home','attendance','performance','profile','profileEdit','personal','payouts','notifications','bank','upi','deviceStatus','workHistory','documents','training','faqs','support','chat'];
+    const is = {}; isKeys.forEach(k => is[k] = screen === k);
+    const nav = {}; isKeys.forEach(k => nav[k] = () => this.go(k));
+
+    const canSend = this.loginContactOk() && this.state.agree;
+    const canVerify = /^\d{4}$/.test(this.state.otp);
+    return {
+      screen, is, nav,
+      // ---- auth ----
+      channel: this.state.channel,
+      channelMobile: this.state.channel !== 'email', channelEmail: this.state.channel === 'email',
+      loginTabs: [ this.loginTab('mobile', 'Mobile'), this.loginTab('whatsapp', 'WhatsApp'), this.loginTab('email', 'Email') ],
+      loginPhoneField: { val: this.state.loginPhone, on: e => this.setState({ loginPhone: e.target.value.replace(/\D/g, '').slice(0, 10) }) },
+      loginEmailField: { val: this.state.loginEmail, on: e => this.setState({ loginEmail: e.target.value }) },
+      agree: this.state.agree,
+      agreeBox: 'width:22px; height:22px; flex:0 0 auto; border-radius:6px; display:flex; align-items:center; justify-content:center; border:2px solid ' + (this.state.agree ? '#1E8E43' : '#C3CFC6') + '; background:' + (this.state.agree ? '#1E8E43' : '#fff') + ';',
+      onToggleAgree: () => this.setState(s => ({ agree: !s.agree })),
+      canSend,
+      sendBtnStyle: 'width:100%; height:54px; border:none; border-radius:14px; background:' + (canSend ? '#1E8E43' : '#B7C9BC') + '; color:#fff; font-size:16px; font-weight:700; font-family:inherit; cursor:' + (canSend ? 'pointer' : 'not-allowed') + ';',
+      onSendOtp: () => this.sendOtp(),
+      otpField: { val: this.state.otp, on: e => this.setState({ otp: e.target.value.replace(/\D/g, '').slice(0, 4) }) },
+      onVerifyOtp: () => this.verifyOtp(),
+      onResendOtp: () => this.resendOtp(),
+      otpDest: this.state.channel === 'email' ? (this.state.loginEmail || 'your email') : ('+91 ' + (this.state.loginPhone || '')),
+      otpChannelLabel: this.state.channel === 'email' ? 'Email' : this.state.channel === 'whatsapp' ? 'WhatsApp' : 'SMS',
+      resendActive: this.state.resendIn <= 0, resendWaiting: this.state.resendIn > 0,
+      resendLabel: this.state.resendIn > 0 ? ('Resend OTP in ' + this.state.resendIn + 's') : 'Resend OTP',
+      canVerify,
+      verifyBtnStyle: 'width:100%; height:54px; border:none; border-radius:14px; background:' + (canVerify ? '#1E8E43' : '#B7C9BC') + '; color:#fff; font-size:16px; font-weight:700; font-family:inherit; cursor:' + (canVerify ? 'pointer' : 'not-allowed') + ';',
+      tabScreen: tabKeys.includes(screen),
+      tabs: [ this.tab('home','Home','home'), this.tab('attendance','Attendance','cal'), this.tab('performance','Performance','target'), this.tab('profile','Profile','user') ],
+      // data states
+      loading: ds === 'loading', empty: ds === 'empty', error: ds === 'error', offline: ds === 'offline', normal: ds === 'normal' || ds === 'offline',
+      // status bar tint per screen
+      statusBg: screen === 'login' ? '#1E8E43' : '#F3F6F2',
+      statusInk: screen === 'login' ? '#ffffff' : '#16231B',
+      // shift flow
+      shiftActive: this.state.shiftActive, shiftInactive: !this.state.shiftActive,
+      shiftOverlay: step !== 'none' && screen === 'home',
+      sLocation: step === 'location', sIdentity: step === 'identity', sFace: step === 'face', sSuccess: step === 'success',
+      timer: this.fmt(this.state.elapsed),
+      act: {
+        startShift: () => this.setState({ shiftStep: 'location' }),
+        locNext: () => this.setState({ shiftStep: 'identity' }),
+        idFace: () => this.setState({ shiftStep: 'face' }),
+        faceNext: () => this.setState({ shiftStep: 'success' }),
+        startWork: () => this.setState({ shiftStep: 'none', shiftActive: true, elapsed: 0 }),
+        checkout: () => this.setState({ shiftActive: false, elapsed: 0 }),
+        closeSheet: () => this.setState({ shiftStep: 'none' }),
+      },
+      // rail
+      railAuth: [ this.railBtn('login','Login','built'), this.railBtn('otp','OTP verify','built') ],
+      railOnboard: [ this.railBtn('onboarding','Profile setup','built'), this.railBtn('status','Under review','built') ],
+      railMain: [ this.railBtn('home','Home / Dashboard','built'), this.railBtn('attendance','Attendance','built'), this.railBtn('performance','Performance','built'), this.railBtn('profile','Profile','built') ],
+      railMoney: [ this.railBtn('payouts','Payouts','built'), this.railBtn('bank','Bank details','flow'), this.railBtn('upi','UPI details','flow'), this.railBtn('notifications','Notifications','built') ],
+      railProfile: [ this.railBtn('profileEdit','Edit profile','flow'), this.railBtn('personal','Personal info','flow'), this.railBtn('deviceStatus','Device status','flow'), this.railBtn('workHistory','Work history','flow'), this.railBtn('documents','Documents','flow'), this.railBtn('training','Training','flow'), this.railBtn('support','Support & settings','flow'), this.railBtn('faqs','FAQs','flow') ],
+
+      // ===== profile sub-screens =====
+      ef: this.buildFields('edit'),
+      pf: this.buildFields('personal'),
+      bf: this.buildFields('bank'),
+      editName: this.state.edit.name,
+      genderOpts: ['Male', 'Female', 'Other'].map(g => this.segOpt('edit', 'gender', g)),
+      relOpts: ['Spouse', 'Parent', 'Sibling', 'Friend'].map(r => this.segOpt('personal', 'emgRel', r)),
+      langOpts: ['English', 'हिंदी', 'বাংলা'].map(l => this.segOpt2('lang', l)),
+      phonePrimary: '+91 98765 43210',
+      onSaveEdit: () => this.save('edit', 'profile'),
+      onSavePersonal: () => this.save('personal', 'profile'),
+      onSaveBank: () => this.save('bank', 'payouts'),
+      onChangePhoto: () => this.toast('Photo picker (demo)'),
+
+      deviceRows: [
+        { k: 'Model', v: 'Zebra TC21 HHD' }, { k: 'Serial', v: 'HHD-2231' },
+        { k: 'Assigned on', v: '08 Jan 2026' }, { k: 'Hub', v: 'Indiranagar Darkstore' },
+      ],
+      deviceReasons: ['Device won\u2019t turn on', 'Scanner / camera not working', 'Battery draining fast', 'Screen damage', 'Other'].map(r => this.radioRow(r)),
+      onDeviceReport: () => this.setState({ deviceSheet: true, deviceReason: '' }),
+      onDeviceClose: () => this.setState({ deviceSheet: false }),
+      onDeviceSubmit: () => { if (!this.state.deviceReason) { this.toast('Select an issue first'); return; } this.setState({ deviceSheet: false }); this.toast('Issue reported \u00b7 support will call you'); },
+      onDeviceReplace: () => this.toast('Replacement requested'),
+      deviceReasonChosen: this.state.deviceReason,
+
+      workRows: [
+        { date: 'Wed, 11 Mar', hub: 'Indiranagar', hrs: '9h 02m', badge: 'Present', col: '#1E8E43', bg: '#EAF5EC' },
+        { date: 'Tue, 10 Mar', hub: 'Indiranagar', hrs: '9h 14m', badge: 'Present +OT', col: '#1E8E43', bg: '#EAF5EC' },
+        { date: 'Mon, 09 Mar', hub: 'Indiranagar', hrs: '4h 30m', badge: 'Half day', col: '#8A6400', bg: '#FCF2DC' },
+        { date: 'Sat, 07 Mar', hub: 'Koramangala', hrs: '9h 00m', badge: 'Present', col: '#1E8E43', bg: '#EAF5EC' },
+        { date: 'Fri, 06 Mar', hub: 'Indiranagar', hrs: '\u2014', badge: 'Absent', col: '#D64545', bg: '#FBE9E9' },
+      ],
+
+      docItems: [
+        Object.assign(this.iconBox('file', '#1E8E43', '#EAF5EC'), { name: 'Aadhaar card', num: '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 1234', verified: true, pending: false, go: () => this.toast('Opening Aadhaar\u2026') }),
+        Object.assign(this.iconBox('file', '#1E8E43', '#EAF5EC'), { name: 'PAN card', num: 'ABCDE\u2022\u2022\u2022\u2022F', verified: true, pending: false, go: () => this.toast('Opening PAN\u2026') }),
+        Object.assign(this.iconBox('file', '#E8A317', '#FCF2DC'), { name: 'Driving licence', num: 'Not uploaded', verified: false, pending: true, go: () => this.toast('Upload licence (demo)') }),
+      ],
+      onAddDoc: () => this.toast('Add document (demo)'),
+
+      trainModules: [
+        { name: 'App & shift basics', dur: '12 min' },
+        { name: 'Order handling & quality', dur: '18 min' },
+        { name: 'Safety & hygiene', dur: '10 min' },
+        { name: 'Customer & returns', dur: '15 min' },
+      ].map((m, i) => {
+        const done = this.state.profTrainDone[i];
+        return { name: m.name, dur: m.dur, done,
+          sub: done ? (m.dur + ' · completed') : (m.dur + ' · tap to watch'),
+          markStyle: 'width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; background:' + (done ? '#1E8E43' : '#123B22') + ';',
+          markEl: done ? this.icon('check', '#fff', 2.6, 18) : React.createElement('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: '#fff' }, React.createElement('path', { d: 'M8 5v14l11-7z' })),
+          open: () => this.openVideo('profile', i, m.name) };
+      }),
+      profDoneCount: this.state.profTrainDone.filter(Boolean).length,
+      profTrainPct: Math.round(this.state.profTrainDone.filter(Boolean).length / 4 * 100) + '%',
+      profAllDone: this.state.profTrainDone.every(Boolean), profNotAllDone: !this.state.profTrainDone.every(Boolean),
+
+      // support chat
+      chatMsgs: this.state.chatMsgs.map(m => {
+        const me = m.who === 'me';
+        return { text: m.text, time: m.time, me,
+          rowStyle: 'display:flex; justify-content:' + (me ? 'flex-end' : 'flex-start') + '; margin-bottom:12px;',
+          bubbleStyle: 'max-width:78%; padding:11px 14px; border-radius:16px; font-size:13.5px; line-height:1.5; ' + (me ? 'background:#1E8E43; color:#fff; border-bottom-right-radius:5px;' : 'background:#fff; color:#16231B; border:1px solid #E4EAE5; border-bottom-left-radius:5px;'),
+          timeStyle: 'font-size:10px; margin-top:5px; ' + (me ? 'color:rgba(255,255,255,.7); text-align:right;' : 'color:#9AA89E;') };
+      }),
+      chatTyping: this.state.chatTyping,
+      chatInputField: { val: this.state.chatInput, on: e => this.setState({ chatInput: e.target.value }) },
+      onSendChat: () => this.sendChat(),
+      chatQuick: ['My shift didn\u2019t start', 'Payout not received', 'Device issue'].map(t => ({ label: t, go: () => this.quickChat(t) })),
+      videoOpen: this.state.videoOpen,
+      videoTitle: this.state.videoTitle,
+      videoPlaying: this.state.videoPlaying,
+      videoPaused: !this.state.videoPlaying,
+      videoProgressStyle: 'height:100%; background:#1E8E43; border-radius:3px; width:' + this.state.videoProgress + '%;',
+      videoTimeLabel: this.fmtVid(this.state.videoProgress),
+      onToggleVideoPlay: () => this.toggleVideoPlay(),
+      onCloseVideo: () => this.closeVideo(),
+      onCertificate: () => this.toast('Downloading certificate\u2026'),
+
+      settingsToggles: [
+        this.toggleRow('push', 'Push notifications', 'Order, shift & payout alerts'),
+        this.toggleRow('shiftRem', 'Shift reminders', '30 min before your shift'),
+        this.toggleRow('payout', 'Payout alerts', 'When money is credited'),
+        this.toggleRow('incentive', 'Incentive updates', 'Bonus & streak nudges'),
+        this.toggleRow('sound', 'In-app sounds', 'Scan & success chimes'),
+      ],
+      helpActions: [
+        Object.assign(this.iconBox('chat', '#1E8E43', '#EAF5EC'), { label: 'Chat with support', sub: 'Avg reply under 5 min', go: () => this.go('chat') }),
+        Object.assign(this.iconBox('phone', '#0E8F8A', '#E0F2F0'), { label: 'Call support', sub: '1800 123 456 \u00b7 9am\u20139pm', go: () => this.toast('Calling support\u2026') }),
+        Object.assign(this.iconBox('mail', '#E8A317', '#FCF2DC'), { label: 'Email us', sub: 'help@selorg.in', go: () => this.toast('Opening mail\u2026') }),
+      ],
+      faqItems: [
+        this.faq(0, 'How do I start my shift?', 'Open Home, tap Start My Shift, verify your location and identity, then tap Start work. You must be within 150 m of your hub.'),
+        this.faq(1, 'When do I get paid?', 'Payouts are processed monthly on the 5th to your verified bank account. Track them under Profile \u2192 Payouts.'),
+        this.faq(2, 'What if my HHD device stops working?', 'Go to Profile \u2192 Device Status \u2192 Report an issue. Support will arrange a replacement, usually within the same day.'),
+        this.faq(3, 'How is my performance scored?', 'Accuracy, speed and attendance combine into your score. See a live breakdown under the Performance tab.'),
+        this.faq(4, 'How do I update my bank details?', 'Profile \u2192 Bank Account. Edit the fields and tap Save. Changes take effect from the next payout cycle.'),
+      ],
+      appVersion: 'Selorg Picker v2.4.1 (build 241)',
+      onLogout: () => this.setState({ confirmLogout: true }),
+      onLogoutCancel: () => this.setState({ confirmLogout: false }),
+      onLogoutConfirm: () => { this.setState({ confirmLogout: false, shiftActive: false, elapsed: 0, shiftStep: 'none' }); this.go('login'); },
+      toastMsg: this.state.toast, toastShow: !!this.state.toast,
+      confirmLogout: this.state.confirmLogout,
+      deviceSheet: this.state.deviceSheet,
+      // onboarding
+      onboardSteps: (() => { const s = this.state.obStep; const phase = s <= 1 ? 1 : s <= 4 ? 2 : s <= 5 ? 3 : s <= 7 ? 4 : 5; return ['Profile', 'Work', 'Training', 'KYC', 'Bank'].map((l, i) => this.onbStep(i + 1, l, (i + 1) < phase, (i + 1) === phase)); })(),
+      obStep: this.state.obStep,
+      ob1: this.state.obStep === 1, ob2: this.state.obStep === 2, ob3: this.state.obStep === 3, ob4: this.state.obStep === 4, ob5: this.state.obStep === 5,
+      ob6: this.state.obStep === 6, ob7: this.state.obStep === 7, ob8: this.state.obStep === 8, ob9: this.state.obStep === 9,
+      obf: this.buildFields('obProfile'), obk: this.buildFields('obKyc'), obb: this.buildFields('obBank'),
+      obGenderOpts: ['Male','Female','Other'].map(g => this.segOpt('obProfile', 'gender', g)),
+      obLocTypeOpts: ['Darkstore','Warehouse'].map(v => this.segOpt2('obLocType', v)),
+      obLocations: [
+        this.radioSel('obLocation', 'indiranagar', 'Indiranagar Darkstore', '2.1 km · 80 Ft Rd, HAL 2nd Stage'),
+        this.radioSel('obLocation', 'koramangala', 'Koramangala Darkstore', '4.8 km · 5th Block'),
+        this.radioSel('obLocation', 'whitefield', 'Whitefield Hub', '11.3 km · ITPL Main Rd'),
+      ],
+      obShifts: [
+        this.radioSel('obShift', 'morning', 'Morning · 9:00 AM – 6:00 PM', '18 slots open'),
+        this.radioSel('obShift', 'evening', 'Evening · 2:00 PM – 11:00 PM', '9 slots open'),
+        this.radioSel('obShift', 'night', 'Night · 10:00 PM – 7:00 AM', '4 slots open'),
+      ],
+      obFaceDone: this.state.obFaceDone, obFaceReady: !this.state.obFaceDone,
+      onFaceCapture: () => this.setState({ obFaceDone: true }),
+      obMgrSent: this.state.obMgrSent, obMgrNotSent: !this.state.obMgrSent,
+      obMgrField: { val: this.state.obMgrOtp, on: e => { const v = e.target.value.replace(/\D/g, '').slice(0, 4); this.setState({ obMgrOtp: v }); } },
+      onRequestMgrOtp: () => { this.setState({ obMgrSent: true }); this.toast('OTP sent to your hub manager'); },
+      onObNext: () => this.obNext(),
+      onObBack: () => this.obBack(),
+      obContinueLabel: this.state.obStep === 7 ? 'Submit for review' : this.state.obStep === 8 ? 'Finish & enter app' : 'Continue',
+      obBackLabel: this.state.obStep === 1 ? 'Back to OTP' : this.state.obStep === 8 ? 'Back to status' : 'Back',
+      showCollectCard: !this.state.deviceCollected,
+      collectSheet: this.state.collectSheet,
+      onOpenCollect: () => this.setState({ collectSheet: true, obMgrOtp: '', obMgrSent: false, obDeviceAck: false }),
+      onCloseCollect: () => this.setState({ collectSheet: false }),
+      onConfirmCollect: () => { if (!/^\d{4}$/.test(this.state.obMgrOtp)) { this.toast('Enter the 4-digit manager OTP'); return; } if (!this.state.obDeviceAck) { this.toast('Confirm device receipt'); return; } this.setState({ collectSheet: false, deviceCollected: true }); this.toast('Device collected \u00b7 HHD-2231 assigned'); },
+      obUpload: () => this.toast('Document uploaded (demo)'),
+      obTrain: [
+        { name: 'App & shift basics', dur: '12 min' },
+        { name: 'Order handling & quality', dur: '18 min' },
+        { name: 'Safety & hygiene', dur: '10 min' },
+        { name: 'Customer & returns', dur: '15 min' },
+      ].map((m, i) => {
+        const done = this.state.obTrainDone[i];
+        return { name: m.name, dur: m.dur, done,
+          rowStyle: 'display:flex; align-items:center; gap:13px; background:#fff; border:1.5px solid ' + (done ? '#CFE7D5' : '#E4EAE5') + '; border-radius:14px; padding:14px 16px; margin-bottom:10px;',
+          markStyle: 'width:32px; height:32px; border-radius:50%; flex:0 0 auto; display:flex; align-items:center; justify-content:center; background:' + (done ? '#1E8E43' : '#EFF3EE') + ';',
+          markEl: this.icon(done ? 'check' : 'book', done ? '#fff' : '#9AA89E', 2.2, 17),
+          btnLabel: done ? 'Completed' : 'Mark done',
+          btnLabel2: done ? 'Rewatch' : 'Watch',
+          btnStyle: 'border:none; border-radius:10px; padding:8px 14px; font-size:12.5px; font-weight:800; font-family:inherit; cursor:pointer; background:' + (done ? '#EAF5EC' : '#1E8E43') + '; color:' + (done ? '#1E8E43' : '#fff') + ';',
+          toggle: () => this.obTrainToggle(i), play: () => this.openVideo('ob', i, m.name) };
+      }),
+      obTrainPct: Math.round(this.state.obTrainDone.filter(Boolean).length / 4 * 100) + '%',
+      obTrainCount: this.state.obTrainDone.filter(Boolean).length,
+      obDeviceAck: this.state.obDeviceAck,
+      obAckBox: 'width:24px; height:24px; border-radius:7px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border:2px solid ' + (this.state.obDeviceAck ? '#1E8E43' : '#C3CFC6') + '; background:' + (this.state.obDeviceAck ? '#1E8E43' : '#fff') + ';',
+      onToggleAck: () => this.setState(st => ({ obDeviceAck: !st.obDeviceAck })),
+
+      // onboarding status gate (PICKER_STATUS enums)
+      gate: this.state.gate,
+      gReview: this.state.gate === 'review', gApproved: this.state.gate === 'approved', gRejected: this.state.gate === 'rejected', gBlocked: this.state.gate === 'blocked', gSuspended: this.state.gate === 'suspended',
+      gateBtns: [ this.gateBtn('review','Under review'), this.gateBtn('approved','Approved'), this.gateBtn('rejected','Rejected'), this.gateBtn('blocked','Blocked'), this.gateBtn('suspended','Suspended') ],
+      onApprovedContinue: () => { this.setState({ obStep: 8, gate: 'review' }); this.go('onboarding'); },
+
+      // wallet withdraw
+      wdSheet: this.state.wdSheet,
+      wdAmount: this.state.wdAmount,
+      wdBank: this.state.wdBank,
+      onWdAmount: e => { const v = e.target.value.replace(/\D/g, '').slice(0, 6); this.setState({ wdAmount: v }); },
+      onOpenWithdraw: () => this.openWithdraw(),
+      onCloseWithdraw: () => this.setState({ wdSheet: false }),
+      onSubmitWithdraw: () => this.submitWithdraw(),
+      reviewItems: [ this.reviewItem('Documents submitted','Done',true), this.reviewItem('Aadhaar & PAN KYC','Done',true), this.reviewItem('Face verification','Verifying',false), this.reviewItem('Manager approval','Pending',false) ],
+
+      // attendance
+      atab: this.state.atab,
+      aDetails: this.state.atab === 'details', aOt: this.state.atab === 'ot', aHistory: this.state.atab === 'history',
+      attTabs: [ this.attTab('details','Details','file'), this.attTab('ot','OT','zap'), this.attTab('history','History','cal') ],
+      attHours: this.state.shiftActive ? this.fmt(this.state.elapsed) : '07:24:10',
+      attPct: '82%', attRingDash: (2 * Math.PI * 36 * 0.82).toFixed(0) + ' ' + (2 * Math.PI * 36).toFixed(0),
+      attRows: [ { k: 'Warehouse / Darkstore', v: 'Indiranagar' }, { k: 'Punch In', v: '09:02 AM' }, { k: 'Expected Punch Out', v: '06:00 PM' }, { k: 'Scheduled Hours', v: '9 hrs' } ],
+      otWeeks: [ { week: 'Week 1', range: 'Mar 1-7', hrs: '4 hrs', amt: '₹600' }, { week: 'Week 2', range: 'Mar 8-14', hrs: '3 hrs', amt: '₹450' }, { week: 'Week 3', range: 'Mar 15-21', hrs: '5 hrs', amt: '₹750' } ],
+      dow: [ { l: 'S' }, { l: 'M' }, { l: 'T' }, { l: 'W' }, { l: 'T' }, { l: 'F' }, { l: 'S' } ],
+      calCells: this.buildCalendar(),
+
+      // performance
+      perfCards: [
+        this.perfCard('package', '#0E8F8A', '#E0F2F0', '64', "Today's Orders"),
+        this.perfCard('target', '#1E8E43', '#EAF5EC', '98%', 'Accuracy'),
+        this.perfCard('zap', '#E8A317', '#FCF2DC', '42', 'Speed Score'),
+        this.perfCard('trophy', '#1E8E43', '#EAF5EC', 'Top 12%', 'Performance'),
+      ],
+      weekBars: [ { d: 'Mon', h: '55%', col: '#CDE7D5' }, { d: 'Tue', h: '72%', col: '#CDE7D5' }, { d: 'Wed', h: '48%', col: '#CDE7D5' }, { d: 'Thu', h: '90%', col: '#1E8E43' }, { d: 'Fri', h: '66%', col: '#CDE7D5' }, { d: 'Sat', h: '80%', col: '#CDE7D5' }, { d: 'Sun', h: '30%', col: '#CDE7D5' } ],
+
+      // payouts
+      payHistory: [ { month: 'February 2026', date: '5 Mar 2026', mode: 'Bank transfer', amt: '₹17,200' }, { month: 'January 2026', date: '5 Feb 2026', mode: 'Bank transfer', amt: '₹16,850' }, { month: 'December 2025', date: '5 Jan 2026', mode: 'Bank transfer', amt: '₹15,940' } ],
+      bankFields: [ { k: 'Account Holder', v: 'Rahul Verma' }, { k: 'Bank Name', v: 'HDFC Bank' }, { k: 'Account Number', v: '••••••••4821' }, { k: 'IFSC Code', v: 'HDFC0001234' } ],
+
+      // notifications
+      notifs: [
+        this.notif('check', '#1E8E43', '#EAF5EC', '#FFFFFF', 'Application approved', 'Welcome aboard! You can now start your first shift.', '2h ago'),
+        this.notif('wallet', '#0E8F8A', '#E0F2F0', '#FFFFFF', 'Payout processed', '₹17,200 was transferred to your HDFC account.', 'Yesterday'),
+        this.notif('zap', '#E8A317', '#FCF2DC', '#FFFFFF', 'Incentive unlocked', 'You earned a ₹150 speed bonus today. Keep it up!', '1d ago'),
+        this.notif('cal', '#1E8E43', '#EAF5EC', '#FFFFFF', 'Shift reminder', 'Your shift at Indiranagar starts at 9:00 AM tomorrow.', '1d ago'),
+      ],
+
+      // profile
+      profileMenu: [
+        this.pmenu('phone', '#1E8E43', '#EAF5EC', 'Device Status', 'HHD-2231 · Assigned', 'deviceStatus'),
+        this.pmenu('user', '#0E8F8A', '#E0F2F0', 'Personal Information', 'Phone, address & emergency', 'personal'),
+        this.pmenu('clock', '#1E8E43', '#EAF5EC', 'Work History', 'Attendance & shift records', 'workHistory'),
+        this.pmenu('file', '#E8A317', '#FCF2DC', 'Documents', 'Aadhaar, PAN · verified', 'documents'),
+        this.pmenu('card', '#1E8E43', '#EAF5EC', 'Bank Account', 'HDFC ••7821', 'bank'),
+        this.pmenu('wallet', '#0E8F8A', '#E0F2F0', 'Payouts', 'Earnings & payment history', 'payouts'),
+        this.pmenu('book', '#E8A317', '#FCF2DC', 'Training', '4 of 4 modules complete', 'training'),
+        this.pmenu('settings', '#5E6E63', '#EFF3EE', 'Support & Settings', 'Help, FAQs & notifications', 'support'),
+      ],
+
+    };
+  }
+}
+</script>
+</body>
+</html>
