@@ -6,7 +6,7 @@
     "android": "node scripts/run-android-devices.js",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "node scripts/adb-reverse-api.js && react-native start",
+    "start": "node scripts/adb-reverse-api.js && node scripts/clear-metro-cache.js && react-native start",
     "test": "jest",
     "e2e:picker": "node e2e/mobile/run-picker-journey.mjs",
     "postinstall": "patch-package"

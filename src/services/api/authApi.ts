@@ -3,6 +3,8 @@ import { request, mockResponse } from './client';
 import type { LoginChannel } from '../../types';
 import type { OnboardingStateDto, VerifyOtpResult } from '../../types/api';
 
+const PICKER_ROLE = 'picker' as const;
+
 export const authApi = {
   sendOtp(payload: { channel: LoginChannel; contact: string; intent: 'login' | 'signup' }) {
     if (config.USE_MOCKS) {
@@ -11,7 +13,7 @@ export const authApi = {
     if (payload.channel === 'email') {
       return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/send-otp-email', {
         method: 'POST',
-        body: { email: payload.contact, intent: payload.intent },
+        body: { email: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: config.otpRequestTimeoutMs,
       });
@@ -22,6 +24,7 @@ export const authApi = {
         phone: payload.contact,
         preferredChannel: payload.channel === 'whatsapp' ? 'whatsapp' : 'sms',
         intent: payload.intent,
+        workforceRole: PICKER_ROLE,
       },
       auth: false,
       timeoutMs: config.otpRequestTimeoutMs,
@@ -35,14 +38,14 @@ export const authApi = {
     if (payload.channel === 'email') {
       return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/resend-otp-email', {
         method: 'POST',
-        body: { email: payload.contact, intent: payload.intent },
+        body: { email: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: config.otpRequestTimeoutMs,
       });
     }
     return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/resend-otp', {
       method: 'POST',
-      body: { phone: payload.contact, intent: payload.intent },
+      body: { phone: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
       auth: false,
       timeoutMs: config.otpRequestTimeoutMs,
     });
@@ -55,7 +58,7 @@ export const authApi = {
     if (payload.channel === 'email') {
       return request<VerifyOtpResult>('/auth/verify-otp-email', {
         method: 'POST',
-        body: { email: payload.contact, otp: payload.otp, intent: payload.intent, workforceRole: 'picker' },
+        body: { email: payload.contact, otp: payload.otp, intent: payload.intent, workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: 15000,
       });
@@ -67,7 +70,7 @@ export const authApi = {
         otp: payload.otp,
         intent: payload.intent,
         preferredChannel: payload.channel === 'whatsapp' ? 'whatsapp' : 'sms',
-        workforceRole: 'picker',
+        workforceRole: PICKER_ROLE,
       },
       auth: false,
       timeoutMs: 15000,
