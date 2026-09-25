@@ -156,6 +156,70 @@ export interface WorkHistoryDto {
   rows: WorkDay[];
 }
 
+export interface MonthlySalaryDto {
+  month: string;
+  monthKey: string;
+  currency: string;
+  config: {
+    monthlySalary: number;
+    standardShiftHours: number;
+    breakMinutes: number;
+    startHandoverMinutes: number;
+    endHandoverMinutes: number;
+    productiveWorkMinutes: number;
+    overtimeMultiplier: number;
+    weekOffAllowance: number;
+    weekOffWeekday: number;
+    monthlyWorkingDays: number;
+  };
+  regular: {
+    monthlySalary: number;
+    monthlySalaryDisplay: string;
+    dailySalary: number;
+    dailySalaryDisplay: string;
+    workingDays: number;
+    weekOffs: number;
+    weekOffsScheduled: number;
+    weekOffsWorked: number;
+    paidDays: number;
+    unpaidLeave: number;
+    leaveDeduction: number;
+    leaveDeductionDisplay: string;
+  };
+  overtime: {
+    otHours: number;
+    otHoursDisplay: string;
+    otRate: number;
+    otRateDisplay: string;
+    otEarnings: number;
+    otEarningsDisplay: string;
+    weekOffWorkHours: number;
+    weekOffWorkEarnings: number;
+    weekOffWorkEarningsDisplay: string;
+  };
+  finalSalary: number;
+  finalSalaryDisplay: string;
+  breakdown: {
+    monthlySalary: string;
+    workingDays: string;
+    weekOffs: string;
+    paidDays: string;
+    unpaidLeave: string;
+    leaveDeduction: string;
+    otHours: string;
+    otRate: string;
+    otEarnings: string;
+    weekOffWorkEarnings: string;
+    finalSalary: string;
+  };
+  weekOffDates: string[];
+  formula: {
+    dailySalary: string;
+    otHourlyRate: string;
+    finalSalary: string;
+  };
+}
+
 export interface PerformanceDto {
   cards: PerfCard[];
   todaysEarnings: string;
@@ -171,6 +235,11 @@ export interface HomeSummaryDto {
     address: string | null;
     accuracy: string | null;
     onSite: boolean;
+    /** Metres from device GPS to hub (null when GPS missing). */
+    distanceM?: number | null;
+    geofenceM?: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
   };
   shift: {
     window: string | null;
@@ -194,6 +263,8 @@ export interface ShiftReadinessDto {
   distanceM?: number | null;
   geofenceM?: number;
   hub?: string | null;
+  hubLatitude?: number | null;
+  hubLongitude?: number | null;
   blockers?: string[];
 }
 

@@ -1,9 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import { useStore } from '../store/AppStore';
 import { formatElapsed } from '../utils/formatters';
-import { shiftApi } from '../services/api/shiftApi';
+import { shiftApi, getLastShiftReadiness } from '../services/api/shiftApi';
 import { ApiError } from '../services/api/client';
 import { getCurrentCoords, requestLocationPermission } from '../services/location/locationService';
+import { config } from '../constants/config';
+import { hasValidCoords, haversineMeters, isWithinGeofence } from '../utils/geo';
 import type { ShiftStep } from '../types';
 
 export function useShift() {
@@ -42,7 +44,7 @@ export function useShift() {
           });
           return;
         }
-        const coords = await getCurrentCoords();
+        const coords = await getCurrentCoords(15_000, { fresh: true });
         if (!coords) {
           dispatch({
             type: 'ui/setToast',
@@ -50,13 +52,31 @@ export function useShift() {
           });
           return;
         }
+
         const readiness = await shiftApi.readiness({
           lat: coords.latitude,
           lng: coords.longitude,
           accuracyM: coords.accuracyM,
         });
-        if (!readiness.ready) {
-          const reason = readiness.blockers?.[0] || 'Move on-site to start your shift';
+
+        // Client-side distance check against hub GPS (Adyar Dark Store / assigned hub).
+        const hubLat = readiness.hubLatitude;
+        const hubLng = readiness.hubLongitude;
+        const geofenceM = readiness.geofenceM ?? config.geofenceMeters;
+        let distanceM = readiness.distanceM ?? null;
+        let onSite = Boolean(readiness.onSite);
+
+        if (hasValidCoords(hubLat, hubLng)) {
+          distanceM = Math.round(haversineMeters(coords.latitude, coords.longitude, hubLat!, hubLng!));
+          onSite = isWithinGeofence(coords.latitude, coords.longitude, hubLat!, hubLng!, geofenceM);
+        }
+
+        if (!readiness.ready || !onSite) {
+          const reason =
+            readiness.blockers?.[0] ||
+            (distanceM != null
+              ? `You are ${distanceM} m from ${readiness.hub || 'the Dark Store'}. Move within ${geofenceM} m to start.`
+              : 'Move on-site to the Dark Store to start your shift');
           dispatch({ type: 'ui/setToast', value: reason });
           return;
         }
@@ -73,7 +93,7 @@ export function useShift() {
   const startWork = useCallback(async () => {
     await runBusy(async () => {
       try {
-        const coords = await getCurrentCoords();
+        const coords = await getCurrentCoords(15_000, { fresh: true });
         if (!coords) {
           dispatch({
             type: 'ui/setToast',
@@ -81,6 +101,26 @@ export function useShift() {
           });
           return;
         }
+
+        // Re-validate geofence with a fresh fix before committing start.
+        const last = getLastShiftReadiness();
+        const hubLat = last?.hubLatitude;
+        const hubLng = last?.hubLongitude;
+        const geofenceM = last?.geofenceM ?? config.geofenceMeters;
+        if (hasValidCoords(hubLat, hubLng)) {
+          const distanceM = Math.round(
+            haversineMeters(coords.latitude, coords.longitude, hubLat!, hubLng!),
+          );
+          if (!isWithinGeofence(coords.latitude, coords.longitude, hubLat!, hubLng!, geofenceM)) {
+            dispatch({
+              type: 'ui/setToast',
+              value: `You are ${distanceM} m from ${last?.hub || 'the Dark Store'}. Move within ${geofenceM} m to start.`,
+            });
+            dispatch({ type: 'shift/setStep', step: 'none' });
+            return;
+          }
+        }
+
         const myShifts = await shiftApi.listMy().catch(() => [] as unknown[]);
         const first = Array.isArray(myShifts) ? myShifts[0] as Record<string, unknown> | undefined : undefined;
         const shiftId =
@@ -132,6 +172,7 @@ export function useShift() {
     ...shift,
     timer: formatElapsed(shift.elapsed),
     busy,
+    lastReadiness: getLastShiftReadiness(),
     setStep,
     startShift,
     startWork,

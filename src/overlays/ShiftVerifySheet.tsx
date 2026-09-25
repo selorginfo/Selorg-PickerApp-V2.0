@@ -66,11 +66,20 @@ export const ShiftVerifySheet: React.FC = () => {
           </View>
           <Text style={[styles.h1, weight(800)]}>Verify your location</Text>
           <Text style={styles.copy}>
-            Checking you're within <Text style={weight(700)}>{config.geofenceMeters} m</Text> of your hub.
+            Checking you're within{' '}
+            <Text style={weight(700)}>{shift.lastReadiness?.geofenceM ?? config.geofenceMeters} m</Text> of{' '}
+            {shift.lastReadiness?.hub || 'your hub'}.
           </Text>
           <View style={styles.locPill}>
             <View style={styles.locDot} />
-            <Text style={[styles.locText, weight(700)]}>You're on site · ±8 m accuracy</Text>
+            <Text style={[styles.locText, weight(700)]}>
+              You're on site
+              {shift.lastReadiness?.accuracyM
+                ? ` · ±${Math.round(shift.lastReadiness.accuracyM)} m accuracy`
+                : shift.lastReadiness?.distanceM != null
+                  ? ` · ${Math.round(shift.lastReadiness.distanceM)} m away`
+                  : ''}
+            </Text>
           </View>
           <PrimaryButton label="Location verified · Continue" onPress={() => shift.setStep('identity')} height={52} fontSize={15} />
           <Pressable style={styles.cancel} onPress={shift.closeSheet}>

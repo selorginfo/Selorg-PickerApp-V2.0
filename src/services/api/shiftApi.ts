@@ -2,6 +2,12 @@ import { config } from '../../constants/config';
 import { request, mockResponse } from './client';
 import type { ShiftReadinessDto } from '../../types/api';
 
+let lastShiftReadiness: ShiftReadinessDto | null = null;
+
+export function getLastShiftReadiness(): ShiftReadinessDto | null {
+  return lastShiftReadiness;
+}
+
 export const shiftApi = {
   listAvailable(query?: { warehouseKey?: string }) {
     if (config.USE_MOCKS) {
@@ -19,13 +25,23 @@ export const shiftApi = {
     }
     return request<unknown[]>('/shifts/my');
   },
-  readiness(query?: { lat?: number; lng?: number; accuracyM?: number }) {
+  async readiness(query?: { lat?: number; lng?: number; accuracyM?: number }) {
     if (config.USE_MOCKS) {
-      return mockResponse<ShiftReadinessDto>({ ready: true, accuracyM: 8, onSite: true });
+      const mock: ShiftReadinessDto = {
+        ready: true,
+        accuracyM: 8,
+        onSite: true,
+        distanceM: 8,
+        geofenceM: 150,
+      };
+      lastShiftReadiness = mock;
+      return mockResponse(mock);
     }
-    return request<ShiftReadinessDto>('/shifts/readiness', {
+    const result = await request<ShiftReadinessDto>('/shifts/readiness', {
       query: { lat: query?.lat, lng: query?.lng, accuracyM: query?.accuracyM },
     });
+    lastShiftReadiness = result;
+    return result;
   },
   select(shiftId: string) {
     if (config.USE_MOCKS) return mockResponse({ ok: true });

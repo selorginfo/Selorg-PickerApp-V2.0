@@ -77,3 +77,8 @@ yarn-error.log
 # Local build artifacts
 *.apk
 *.log
+
+# Machine-specific API host (auto-written by scripts/ensure-dev-api-env.js)
+.env
+.env.local
+.env.*.local

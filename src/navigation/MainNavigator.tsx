@@ -10,6 +10,7 @@ import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { PersonalInfoScreen } from '../screens/profile/PersonalInfoScreen';
 import { DeviceStatusScreen } from '../screens/profile/DeviceStatusScreen';
 import { WorkHistoryScreen } from '../screens/profile/WorkHistoryScreen';
+import { SalaryScreen } from '../screens/profile/SalaryScreen';
 import { DocumentsScreen } from '../screens/profile/DocumentsScreen';
 import { UploadDocumentScreen } from '../screens/profile/UploadDocumentScreen';
 import { TrainingScreen } from '../screens/profile/TrainingScreen';
@@ -31,6 +32,7 @@ export const MainNavigator: React.FC = () => (
     <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
     <Stack.Screen name="DeviceStatus" component={DeviceStatusScreen} />
     <Stack.Screen name="WorkHistory" component={WorkHistoryScreen} />
+    <Stack.Screen name="Salary" component={SalaryScreen} />
     <Stack.Screen name="Documents" component={DocumentsScreen} />
     <Stack.Screen name="UploadDocument" component={UploadDocumentScreen} />
     <Stack.Screen name="Training" component={TrainingScreen} />
