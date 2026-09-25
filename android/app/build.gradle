@@ -118,31 +118,40 @@ dependencies {
     }
 }
 
-def reverseApiPort() {
+/**
+ * AGP 9 / Gradle 9 removed Project.exec from some contexts ("Could not find
+ * method exec()"). Use ProcessBuilder so `react-native run-android` still
+ * tunnels Metro (8081) + selorg-service (3333) without a machine-specific IP.
+ */
+def reverseDevPorts() {
     try {
-        def adb = android.adbExecutable
-        def devicesOut = new ByteArrayOutputStream()
-        exec {
-            commandLine adb, "devices"
-            standardOutput = devicesOut
-            ignoreExitValue true
-        }
-        devicesOut.toString().split("\\r?\\n").each { line ->
+        def adb = android.adbExecutable.toString()
+        def devicesProc = new ProcessBuilder(adb, "devices").redirectErrorStream(true).start()
+        def devicesOut = new String(devicesProc.getInputStream().readAllBytes(), "UTF-8")
+        devicesProc.waitFor()
+        devicesOut.split("\\r?\\n").each { line ->
             def parts = line.trim().split("\\s+")
             if (parts.length >= 2 && parts[1] == "device") {
-                exec {
-                    commandLine adb, "-s", parts[0], "reverse", "tcp:3333", "tcp:3333"
-                    ignoreExitValue true
+                ["3333", "8081"].each { port ->
+                    def rev = new ProcessBuilder(adb, "-s", parts[0], "reverse", "tcp:${port}", "tcp:${port}")
+                        .redirectErrorStream(true)
+                        .start()
+                    rev.waitFor()
+                    if (rev.exitValue() != 0) {
+                        logger.warn("adb reverse tcp:${port} failed on ${parts[0]}")
+                    } else {
+                        logger.lifecycle("adb reverse tcp:${port} ok on ${parts[0]}")
+                    }
                 }
             }
         }
     } catch (Exception ignored) {
-        logger.warn("adb reverse tcp:3333 skipped: ${ignored.message}")
+        logger.warn("adb reverse skipped: ${ignored.message}")
     }
 }
 
 afterEvaluate {
     tasks.matching { it.name.toLowerCase().contains("install") }.configureEach { t ->
-        t.doLast { reverseApiPort() }
+        t.doLast { reverseDevPorts() }
     }
 }

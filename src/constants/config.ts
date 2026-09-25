@@ -1,32 +1,33 @@
 import { NativeModules, Platform } from 'react-native';
+import {
+  DEV_API_HOST as ENV_DEV_API_HOST,
+  DEV_API_PORT as ENV_DEV_API_PORT,
+  EXPO_PUBLIC_DEV_API_HOST as ENV_EXPO_DEV_API_HOST,
+  EXPO_PUBLIC_DEV_API_PORT as ENV_EXPO_DEV_API_PORT,
+} from '@env';
 
 /**
- * Dev API host:
- * Android emulator → 10.0.2.2 (host loopback).
- * Physical Android → Metro LAN IP, then DEV_API_HOST / LAN fallback.
- * Never pin a stale Wi‑Fi IP as the only target — that is what produced
- * "Network unavailable" when Send OTP never reached selorg-service.
+ * Dev API host resolution (probe + pin first reachable):
+ * 1. Metro LAN / emulator gateway from the JS bundle URL
+ * 2. Optional DEV_API_HOST from local .env (written by scripts/ensure-dev-api-env.js)
+ * 3. 127.0.0.1 when Metro is loopback (needs `adb reverse tcp:3333`)
+ * 4. 10.0.2.2 on Android (emulator host loopback)
  *
- * Set EXPO_PUBLIC_DEV_API_HOST (or DEV_API_HOST) to your PC's current LAN IP
- * when testing on a physical phone (ipconfig → IPv4).
+ * Never commit a machine LAN IP — that is what produced "Cannot reach the API
+ * (192.168.x.x, 127.0.0.1)" when the PC DHCP address changed.
  */
-const LAN_FALLBACK_HOST = '192.168.0.9';
-
-function readEnv(name: string): string {
-  try {
-    const env =
-      (typeof globalThis !== 'undefined' &&
-        (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env) ||
-      {};
-    const value = env[name];
-    return typeof value === 'string' ? value.trim() : '';
-  } catch {
-    return '';
-  }
+function trimEnv(value: string | undefined): string {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
-const envHost = readEnv('EXPO_PUBLIC_DEV_API_HOST') || readEnv('DEV_API_HOST');
-const envPort = readEnv('EXPO_PUBLIC_DEV_API_PORT') || readEnv('DEV_API_PORT');
+const envHost =
+  trimEnv(ENV_EXPO_DEV_API_HOST) ||
+  trimEnv(ENV_DEV_API_HOST) ||
+  '';
+const envPort =
+  trimEnv(ENV_EXPO_DEV_API_PORT) ||
+  trimEnv(ENV_DEV_API_PORT) ||
+  '';
 
 export const DEV_API_PORT = envPort || '3333';
 
@@ -60,13 +61,15 @@ function isAndroidEmulator(): boolean {
   const fromPlatform =
     ((Platform as unknown as { constants?: Record<string, string> }).constants || {});
   const constants = { ...fromNative, ...fromPlatform };
-  const blob = `${constants.Fingerprint || ''} ${constants.Model || ''} ${constants.Brand || ''} ${constants.Manufacturer || ''}`.toLowerCase();
+  const blob = `${constants.Fingerprint || ''} ${constants.Model || ''} ${constants.Brand || ''} ${constants.Manufacturer || ''} ${constants.Product || ''}`.toLowerCase();
   return (
     blob.includes('generic') ||
     blob.includes('emulator') ||
     blob.includes('sdk_gphone') ||
+    blob.includes('google_sdk') ||
     blob.includes('goldfish') ||
-    blob.includes('ranchu')
+    blob.includes('ranchu') ||
+    blob.includes('sdk_phone')
   );
 }
 
@@ -80,28 +83,55 @@ function pushUnique(list: string[], host?: string): void {
 export function getApiHostCandidates(): string[] {
   const metroHost = getMetroHost();
   const hosts: string[] = [];
+  const metroIsLoopback = Boolean(metroHost && isLoopbackHost(metroHost));
+  const metroIsEmulatorGateway = Boolean(metroHost && isEmulatorOnlyHost(metroHost));
+  const metroIsLan = Boolean(
+    metroHost && !isLoopbackHost(metroHost) && !isEmulatorOnlyHost(metroHost),
+  );
+  const emulator = Platform.OS === 'android' && (isAndroidEmulator() || metroIsEmulatorGateway);
 
-  if (envHost) pushUnique(hosts, envHost);
+  // Same machine as Metro when the bundle loaded over Wi‑Fi LAN.
+  if (metroIsLan) {
+    pushUnique(hosts, metroHost);
+  }
+
+  // Emulator gateway from Metro (typical AVD / Genymotion).
+  if (metroIsEmulatorGateway) {
+    pushUnique(hosts, metroHost);
+  }
+
+  // Local .env LAN IP — required when Metro uses adb reverse (scriptURL is
+  // loopback) and reverse for :3333 is missing (common on wireless ADB).
+  if (envHost && !isLoopbackHost(envHost)) {
+    if (!(metroIsLan && envHost === metroHost)) {
+      pushUnique(hosts, envHost);
+    }
+  }
 
   if (Platform.OS === 'android') {
-    const emulator = isAndroidEmulator() || isEmulatorOnlyHost(metroHost);
-    if (emulator) {
-      pushUnique(hosts, metroHost === '10.0.3.2' ? '10.0.3.2' : '10.0.2.2');
-      pushUnique(hosts, '127.0.0.1');
-    } else {
-      // Physical: use the same LAN host Metro already loaded JS from.
-      // 127.0.0.1 only works while `adb reverse` is alive — wireless ADB drops
-      // that tunnel on reconnect, which produced the Home error card.
-      if (metroHost && !isLoopbackHost(metroHost) && !isEmulatorOnlyHost(metroHost)) {
-        pushUnique(hosts, metroHost);
-      }
-      pushUnique(hosts, LAN_FALLBACK_HOST);
+    // USB / wireless adb reverse: device localhost → PC selorg-service.
+    if (metroIsLoopback || !metroHost) {
       pushUnique(hosts, '127.0.0.1');
     }
+
+    // Always offer the emulator gateway on Android — covers mis-detected AVDs
+    // that report a consumer device model but still use 10.0.2.2.
+    if (emulator || metroIsLoopback || !metroHost) {
+      pushUnique(hosts, '10.0.2.2');
+    }
+
+    // Last resort reverse target even when Metro already advertised a LAN IP
+    // (some OEM wireless-ADB setups keep reverse for API only).
+    pushUnique(hosts, '127.0.0.1');
   } else {
     pushUnique(hosts, 'localhost');
     pushUnique(hosts, '127.0.0.1');
-    if (metroHost && !isLoopbackHost(metroHost)) pushUnique(hosts, metroHost);
+    if (metroIsLan) pushUnique(hosts, metroHost);
+  }
+
+  // Loopback .env only when Metro is also loopback / reverse.
+  if (envHost && isLoopbackHost(envHost) && (metroIsLoopback || !metroHost)) {
+    pushUnique(hosts, envHost === 'localhost' ? '127.0.0.1' : envHost);
   }
 
   return hosts;
@@ -165,7 +195,7 @@ export async function ensureReachableApiHost(): Promise<string> {
     console.warn('[SelorgPicker] No API host reachable. Tried:', ordered.join(', '));
   }
   throw new HostUnreachableError(
-    `Cannot reach the API (${ordered.join(', ')}). Check Wi‑Fi, that selorg-service is running on port ${DEV_API_PORT}, and set EXPO_PUBLIC_DEV_API_HOST to your PC LAN IP.`,
+    `Cannot reach the API (${ordered.join(', ')}). Check Wi‑Fi, that selorg-service is running on port ${DEV_API_PORT}, run npm start (sets adb reverse + DEV_API_HOST), and ensure the phone can reach your PC.`,
   );
 }
 
@@ -195,4 +225,8 @@ export const config = {
 if (__DEV__) {
   // eslint-disable-next-line no-console
   console.log('[SelorgPicker] API base URL:', config.apiBaseUrl);
+  // eslint-disable-next-line no-console
+  console.log('[SelorgPicker] API candidates:', getApiHostCandidates().join(', '));
+  // eslint-disable-next-line no-console
+  console.log('[SelorgPicker] Metro host:', getMetroHost() || '(none)');
 }

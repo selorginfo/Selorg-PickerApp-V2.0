@@ -35,6 +35,7 @@ export type MainStackParamList = {
   PersonalInfo: undefined;
   DeviceStatus: undefined;
   WorkHistory: undefined;
+  Salary: undefined;
   Documents: undefined;
   UploadDocument: { type: KycDocumentType };
   Training: undefined;

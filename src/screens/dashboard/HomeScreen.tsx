@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { MainTabScreenNavigation } from '../../navigation/navigationTypes';
 import { Screen } from '../../components/common/Screen';
 import { OfflineBanner } from '../../components/common/OfflineBanner';
@@ -17,6 +17,10 @@ import { useStore } from '../../store/AppStore';
 import { useApiResource } from '../../hooks/useApiResource';
 import { homeApi } from '../../services/api/homeApi';
 import { getCurrentCoords } from '../../services/location/locationService';
+import { config } from '../../constants/config';
+import {
+  formatDistanceMeters,
+} from '../../utils/geo';
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<MainTabScreenNavigation<'Home'>>();
@@ -24,16 +28,17 @@ export const HomeScreen: React.FC = () => {
   const { openCollectSheet } = useUI();
   const { state, dispatch } = useStore();
   const fetchHome = useCallback(async () => {
-    const coords = await getCurrentCoords(8000).catch(() => null);
+    const coords = await getCurrentCoords(10_000).catch(() => null);
     return homeApi.getSummary(
       coords
         ? { lat: coords.latitude, lng: coords.longitude, accuracyM: coords.accuracyM }
         : undefined,
     );
   }, []);
-  const { data: home, loading, error, refetch } = useApiResource(fetchHome);
+  const { data: home, loading, error, refetch } = useApiResource(fetchHome, [], { pollMs: 20_000 });
   const shiftActiveRef = useRef(state.shift.active);
   shiftActiveRef.current = state.shift.active;
+  const skipFirstFocusRef = useRef(true);
 
   useEffect(() => {
     if (!home) return;
@@ -64,6 +69,59 @@ export const HomeScreen: React.FC = () => {
       refetch();
     }
   }, [state.onboarding.deviceCollected, home, refetch]);
+
+  // Re-read GPS whenever Home is re-focused (tab switch / return from settings).
+  useFocusEffect(
+    useCallback(() => {
+      if (skipFirstFocusRef.current) {
+        skipFirstFocusRef.current = false;
+        return;
+      }
+      refetch();
+    }, [refetch]),
+  );
+
+  const hubGeo = useMemo(() => {
+    const geofenceM = home?.hub?.geofenceM ?? config.geofenceMeters;
+    const hasGps = Boolean(home?.hub?.accuracy);
+    const distanceM = typeof home?.hub?.distanceM === 'number' ? home.hub.distanceM : null;
+    const onSite =
+      typeof distanceM === 'number'
+        ? distanceM <= geofenceM
+        : Boolean(home?.hub?.onSite) && hasGps;
+
+    return {
+      onSite,
+      hasGps,
+      distanceM,
+      geofenceM,
+      accuracyLabel: home?.hub?.accuracy || '—',
+    };
+  }, [home?.hub]);
+
+  const canStartShift = hubGeo.onSite && hubGeo.hasGps && !shift.busy;
+  const shiftFooter = !hubGeo.hasGps
+    ? 'Enable GPS · Shift Start works only at the Dark Store'
+    : hubGeo.onSite
+      ? 'Face or fingerprint required · on-site only'
+      : hubGeo.distanceM != null
+        ? `You are ${formatDistanceMeters(hubGeo.distanceM)} away · move within ${formatDistanceMeters(hubGeo.geofenceM)} of the Dark Store`
+        : 'Move closer to the Dark Store to start your shift';
+
+  const onPressStart = useCallback(() => {
+    if (!canStartShift) {
+      dispatch({
+        type: 'ui/setToast',
+        value: !hubGeo.hasGps
+          ? 'Turn on location / GPS, then try again.'
+          : hubGeo.distanceM != null
+            ? `You are ${Math.round(hubGeo.distanceM)} m from the Dark Store. Move within ${hubGeo.geofenceM} m to start.`
+            : 'Move closer to the Dark Store to start your shift.',
+      });
+      return;
+    }
+    void shift.startShift();
+  }, [canStartShift, dispatch, hubGeo, shift]);
 
   return (
     <Screen scroll contentStyle={styles.content} testID="screen-home">
@@ -139,12 +197,23 @@ export const HomeScreen: React.FC = () => {
               <View style={styles.hubStats}>
                 <View style={styles.flex1}>
                   <Text style={styles.statLabel}>Accuracy</Text>
-                  <Text style={[styles.statValue, weight(700)]}>{home.hub?.accuracy || '—'}</Text>
+                  <Text style={[styles.statValue, weight(700)]}>{hubGeo.accuracyLabel}</Text>
+                </View>
+                <View style={styles.flex1}>
+                  <Text style={styles.statLabel}>Distance</Text>
+                  <Text style={[styles.statValue, weight(700)]}>
+                    {hubGeo.distanceM != null ? formatDistanceMeters(hubGeo.distanceM) : '—'}
+                  </Text>
                 </View>
                 <View style={styles.flex1}>
                   <Text style={styles.statLabel}>Status</Text>
-                  <Text style={[styles.statValue, weight(700), { color: colors.primary }]}>
-                    {home.hub?.onSite ? 'On site ✓' : 'Off site'}
+                  <Text
+                    style={[
+                      styles.statValue,
+                      weight(700),
+                      { color: hubGeo.onSite ? colors.primary : colors.amber },
+                    ]}>
+                    {hubGeo.onSite ? 'On site ✓' : 'Off site'}
                   </Text>
                 </View>
               </View>
@@ -186,15 +255,15 @@ export const HomeScreen: React.FC = () => {
                   </View>
                   <PrimaryButton
                     label="START MY SHIFT"
-                    onPress={shift.startShift}
+                    onPress={onPressStart}
                     loading={shift.busy}
-                    disabled={shift.busy}
+                    disabled={!canStartShift}
                     height={52}
                     fontSize={15}
                     testID="start-shift"
                   />
                   <View style={styles.hubFooter}>
-                    <Text style={styles.hubFooterText}>Face or fingerprint required · on-site only</Text>
+                    <Text style={styles.hubFooterText}>{shiftFooter}</Text>
                   </View>
                 </>
               )}
@@ -308,7 +377,7 @@ const styles = StyleSheet.create({
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary },
   liveText: { fontSize: 10.5, color: colors.primary },
   hubAddress: { fontSize: 13, color: colors.inkSecondary, marginBottom: 14 },
-  hubStats: { flexDirection: 'row', gap: 20, marginBottom: 14 },
+  hubStats: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   statLabel: { fontSize: 11.5, color: colors.inkMuted, ...weight(600) },
   statValue: { fontSize: 14, marginTop: 2 },
   divider: { height: 1, backgroundColor: colors.borderSoft, marginBottom: 12 },

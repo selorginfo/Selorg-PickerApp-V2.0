@@ -1,9 +1,42 @@
 import { config } from '../../constants/config';
-import { request, mockResponse } from './client';
+import { ApiError, request, mockResponse } from './client';
 import type { LoginChannel } from '../../types';
 import type { OnboardingStateDto, VerifyOtpResult } from '../../types/api';
 
 const PICKER_ROLE = 'picker' as const;
+
+type SendOtpResponse = {
+  ok?: boolean;
+  channel?: string;
+  message?: string;
+  deliveryStatus?: 'sent' | 'failed';
+  smsDelivered?: boolean;
+};
+
+/**
+ * Backend must never return a usable OTP. Treat deliveryStatus === 'failed'
+ * as a hard error so the OTP screen is not shown when no SMS/email was sent.
+ */
+function assertOtpDelivered<T extends SendOtpResponse>(data: T): T {
+  if (data && typeof data === 'object') {
+    const copy = { ...data } as T & { otp?: unknown };
+    delete copy.otp;
+    if (copy.deliveryStatus === 'failed') {
+      const channel = String(copy.channel || '').toLowerCase();
+      const mobile = channel === 'sms' || channel === 'whatsapp';
+      throw new ApiError(
+        502,
+        mobile
+          ? 'Mobile OTP is unavailable right now. Use Email to sign in.'
+          : copy.message || 'Unable to send OTP. Please try again.',
+        copy,
+        'OTP_PROVIDER_ERROR',
+      );
+    }
+    return copy;
+  }
+  return data;
+}
 
 export const authApi = {
   sendOtp(payload: { channel: LoginChannel; contact: string; intent: 'login' | 'signup' }) {
@@ -11,14 +44,14 @@ export const authApi = {
       throw new Error('Mock OTP is disabled — configure the API SMS provider');
     }
     if (payload.channel === 'email') {
-      return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/send-otp-email', {
+      return request<SendOtpResponse>('/auth/send-otp-email', {
         method: 'POST',
         body: { email: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: config.otpRequestTimeoutMs,
-      });
+      }).then(assertOtpDelivered);
     }
-    return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/send-otp', {
+    return request<SendOtpResponse>('/auth/send-otp', {
       method: 'POST',
       body: {
         phone: payload.contact,
@@ -28,7 +61,7 @@ export const authApi = {
       },
       auth: false,
       timeoutMs: config.otpRequestTimeoutMs,
-    });
+    }).then(assertOtpDelivered);
   },
 
   resendOtp(payload: { channel: LoginChannel; contact: string; intent: 'login' | 'signup' }) {
@@ -36,19 +69,19 @@ export const authApi = {
       throw new Error('Mock OTP is disabled — configure the API SMS provider');
     }
     if (payload.channel === 'email') {
-      return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/resend-otp-email', {
+      return request<SendOtpResponse>('/auth/resend-otp-email', {
         method: 'POST',
         body: { email: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: config.otpRequestTimeoutMs,
-      });
+      }).then(assertOtpDelivered);
     }
-    return request<{ ok?: boolean; smsDelivered?: boolean }>('/auth/resend-otp', {
+    return request<SendOtpResponse>('/auth/resend-otp', {
       method: 'POST',
       body: { phone: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
       auth: false,
       timeoutMs: config.otpRequestTimeoutMs,
-    });
+    }).then(assertOtpDelivered);
   },
 
   verifyOtp(payload: { channel: LoginChannel; contact: string; otp: string; intent: 'login' | 'signup' }) {

@@ -20,7 +20,7 @@ export const profileMenuBase: ReadonlyArray<{
   /** Fallback when live data is still loading */
   subFallback: string;
   target: keyof MainStackParamList;
-  key: 'device' | 'personal' | 'workHistory' | 'documents' | 'bank' | 'payouts' | 'training' | 'support';
+  key: 'device' | 'personal' | 'workHistory' | 'salary' | 'documents' | 'bank' | 'payouts' | 'training' | 'support';
 }> = [
   {
     key: 'device',
@@ -48,6 +48,15 @@ export const profileMenuBase: ReadonlyArray<{
     title: 'Work History',
     subFallback: 'Attendance & shift records',
     target: 'WorkHistory',
+  },
+  {
+    key: 'salary',
+    icon: 'wallet',
+    color: '#0E8F8A',
+    bg: '#E0F2F0',
+    title: 'Salary',
+    subFallback: 'Monthly pay, leave & OT',
+    target: 'Salary',
   },
   {
     key: 'documents',

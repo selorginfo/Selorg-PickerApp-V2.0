@@ -11,6 +11,10 @@ export const dummyHub: HomeSummaryDto['hub'] = {
   address: '80 Ft Rd, HAL 2nd Stage, Bengaluru 560038',
   accuracy: '±8 m',
   onSite: true,
+  distanceM: 8,
+  geofenceM: 150,
+  latitude: 12.9784,
+  longitude: 77.6408,
 };
 
 export const dummyDevice: HomeSummaryDto['device'] = {

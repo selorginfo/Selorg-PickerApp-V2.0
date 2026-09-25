@@ -7,6 +7,7 @@ const { execSync, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+require('./ensure-dev-api-env');
 require('./adb-reverse-api');
 
 const root = path.resolve(__dirname, '..');
