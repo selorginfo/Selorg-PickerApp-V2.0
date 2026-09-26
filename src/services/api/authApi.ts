@@ -10,7 +10,13 @@ type SendOtpResponse = {
   channel?: string;
   message?: string;
   deliveryStatus?: 'sent' | 'failed';
-  smsDelivered?: boolean;
+};
+
+type CheckRegistrationResponse = {
+  phoneRegistered?: boolean;
+  emailRegistered?: boolean;
+  next?: string;
+  message?: string;
 };
 
 /**
@@ -38,15 +44,32 @@ function assertOtpDelivered<T extends SendOtpResponse>(data: T): T {
   return data;
 }
 
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, '').slice(-10);
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 export const authApi = {
   sendOtp(payload: { channel: LoginChannel; contact: string; intent: 'login' | 'signup' }) {
     if (config.USE_MOCKS) {
       throw new Error('Mock OTP is disabled — configure the API SMS provider');
     }
+    // Signup must use registration endpoints (phone + email). Login-only here.
+    if (payload.intent === 'signup') {
+      throw new ApiError(
+        400,
+        'Use registration with phone and email to create an account.',
+        null,
+        'INVALID_INPUT',
+      );
+    }
     if (payload.channel === 'email') {
       return request<SendOtpResponse>('/auth/send-otp-email', {
         method: 'POST',
-        body: { email: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
+        body: { email: payload.contact, purpose: 'LOGIN', workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: config.otpRequestTimeoutMs,
       }).then(assertOtpDelivered);
@@ -56,7 +79,7 @@ export const authApi = {
       body: {
         phone: payload.contact,
         preferredChannel: payload.channel === 'whatsapp' ? 'whatsapp' : 'sms',
-        intent: payload.intent,
+        purpose: 'LOGIN',
         workforceRole: PICKER_ROLE,
       },
       auth: false,
@@ -68,17 +91,30 @@ export const authApi = {
     if (config.USE_MOCKS) {
       throw new Error('Mock OTP is disabled — configure the API SMS provider');
     }
+    if (payload.intent === 'signup') {
+      throw new ApiError(
+        400,
+        'Use registration with phone and email to create an account.',
+        null,
+        'INVALID_INPUT',
+      );
+    }
     if (payload.channel === 'email') {
       return request<SendOtpResponse>('/auth/resend-otp-email', {
         method: 'POST',
-        body: { email: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
+        body: { email: payload.contact, purpose: 'LOGIN', workforceRole: PICKER_ROLE },
         auth: false,
         timeoutMs: config.otpRequestTimeoutMs,
       }).then(assertOtpDelivered);
     }
     return request<SendOtpResponse>('/auth/resend-otp', {
       method: 'POST',
-      body: { phone: payload.contact, intent: payload.intent, workforceRole: PICKER_ROLE },
+      body: {
+        phone: payload.contact,
+        preferredChannel: payload.channel === 'whatsapp' ? 'whatsapp' : 'sms',
+        purpose: 'LOGIN',
+        workforceRole: PICKER_ROLE,
+      },
       auth: false,
       timeoutMs: config.otpRequestTimeoutMs,
     }).then(assertOtpDelivered);
@@ -88,10 +124,24 @@ export const authApi = {
     if (config.USE_MOCKS) {
       throw new Error('Mock OTP is disabled — configure the API SMS provider');
     }
+    if (payload.intent === 'signup') {
+      throw new ApiError(
+        400,
+        'Use registration with phone and email to create an account.',
+        null,
+        'INVALID_INPUT',
+      );
+    }
     if (payload.channel === 'email') {
       return request<VerifyOtpResult>('/auth/verify-otp-email', {
         method: 'POST',
-        body: { email: payload.contact, otp: payload.otp, intent: payload.intent, workforceRole: PICKER_ROLE },
+        body: {
+          email: payload.contact,
+          otp: payload.otp,
+          intent: 'login',
+          purpose: 'LOGIN',
+          workforceRole: PICKER_ROLE,
+        },
         auth: false,
         timeoutMs: 15000,
       });
@@ -101,8 +151,71 @@ export const authApi = {
       body: {
         phone: payload.contact,
         otp: payload.otp,
-        intent: payload.intent,
+        intent: 'login',
+        purpose: 'LOGIN',
         preferredChannel: payload.channel === 'whatsapp' ? 'whatsapp' : 'sms',
+        workforceRole: PICKER_ROLE,
+      },
+      auth: false,
+      timeoutMs: 15000,
+    });
+  },
+
+  checkRegistration(phone: string, email: string) {
+    return request<CheckRegistrationResponse>('/auth/check-registration', {
+      method: 'POST',
+      body: {
+        phone: normalizePhone(phone),
+        email: normalizeEmail(email),
+        workforceRole: PICKER_ROLE,
+      },
+      auth: false,
+      timeoutMs: 15000,
+    });
+  },
+
+  sendRegistrationOtp(phone: string, email: string) {
+    if (config.USE_MOCKS) {
+      throw new Error('Mock OTP is disabled — configure the API SMS provider');
+    }
+    return request<SendOtpResponse>('/auth/send-registration-otp', {
+      method: 'POST',
+      body: {
+        phone: normalizePhone(phone),
+        email: normalizeEmail(email),
+        workforceRole: PICKER_ROLE,
+      },
+      auth: false,
+      timeoutMs: config.otpRequestTimeoutMs,
+    }).then(assertOtpDelivered);
+  },
+
+  resendRegistrationOtp(phone: string, email: string) {
+    if (config.USE_MOCKS) {
+      throw new Error('Mock OTP is disabled — configure the API SMS provider');
+    }
+    return request<SendOtpResponse>('/auth/resend-registration-otp', {
+      method: 'POST',
+      body: {
+        phone: normalizePhone(phone),
+        email: normalizeEmail(email),
+        workforceRole: PICKER_ROLE,
+      },
+      auth: false,
+      timeoutMs: config.otpRequestTimeoutMs,
+    }).then(assertOtpDelivered);
+  },
+
+  verifyRegistrationOtp(phone: string, email: string, otp: string) {
+    if (config.USE_MOCKS) {
+      throw new Error('Mock OTP is disabled — configure the API SMS provider');
+    }
+    return request<VerifyOtpResult>('/auth/verify-registration-otp', {
+      method: 'POST',
+      body: {
+        phone: normalizePhone(phone),
+        email: normalizeEmail(email),
+        otp,
         workforceRole: PICKER_ROLE,
       },
       auth: false,

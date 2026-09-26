@@ -44,9 +44,17 @@ export async function fetchPickerOtp(phone, { attempts = 4 } = {}) {
       try {
         // Prefer newest OTP; brief wait helps when send-otp just wrote the row.
         if (i > 0) await sleep(800 * i);
-        const doc = await mongoose.connection.db
-          .collection("picker_otps")
-          .findOne({ identifier: digits }, { sort: { updatedAt: -1 } });
+        // Role-scoped keys: `picker|phone|9556686269` (and legacy bare phone).
+        const doc = await mongoose.connection.db.collection("picker_otps").findOne(
+          {
+            $or: [
+              { identifier: digits },
+              { identifier: `picker|phone|${digits}` },
+              { identifier: { $regex: `${digits}$` } },
+            ],
+          },
+          { sort: { updatedAt: -1 } },
+        );
         if (!doc?.otp) throw new Error(`No OTP found for ${digits}`);
         return String(doc.otp);
       } finally {

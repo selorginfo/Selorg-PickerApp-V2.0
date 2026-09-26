@@ -64,54 +64,100 @@ export const LoginScreen: React.FC = () => {
                 </View>
                 <Text style={[styles.title, weight(800)]}>Selorg Picker</Text>
                 <Text style={styles.subtitle}>
-                  {isSignup ? 'Create your workforce account' : 'Sign in to your workforce account'}
+                  {isSignup
+                    ? 'Create your workforce account'
+                    : 'Sign in to your workforce account'}
                 </Text>
               </View>
 
               <View style={styles.body}>
                 <View style={styles.card}>
-                  <Text style={styles.cardLabel}>Choose login method</Text>
-                  <View style={styles.segmentWrap}>
-                    <SegmentedControl
-                      variant="pill"
-                      value={auth.channel}
-                      onChange={auth.setChannel}
-                      options={[
-                        { label: 'Mobile', value: 'mobile' },
-                        { label: 'WhatsApp', value: 'whatsapp' },
-                        { label: 'Email', value: 'email' },
-                      ]}
-                    />
-                  </View>
-
-                  <Text style={styles.fieldLabel}>{fieldLabel}</Text>
-                  {isEmail ? (
-                    <TextInput
-                      value={auth.loginEmail}
-                      onChangeText={auth.setLoginEmail}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      placeholder="you@example.com"
-                      placeholderTextColor={colors.inkMuted}
-                      style={styles.input}
-                    />
-                  ) : (
-                    <View style={styles.phoneRow}>
-                      <View style={styles.prefix}>
-                        <Text style={[styles.prefixText, weight(700)]}>IN +91</Text>
+                  {!isSignup ? (
+                    <>
+                      <Text style={styles.cardLabel}>Choose login method</Text>
+                      <View style={styles.segmentWrap}>
+                        <SegmentedControl
+                          variant="pill"
+                          value={auth.channel}
+                          onChange={auth.setChannel}
+                          options={[
+                            { label: 'Mobile', value: 'mobile' },
+                            { label: 'WhatsApp', value: 'whatsapp' },
+                            { label: 'Email', value: 'email' },
+                          ]}
+                        />
                       </View>
-                      <View style={styles.phoneInputWrap}>
+                    </>
+                  ) : (
+                    <Text style={styles.signupHint}>
+                      Enter phone and email. We will send the OTP to your email.
+                    </Text>
+                  )}
+
+                  {isSignup ? (
+                    <>
+                      <Text style={styles.fieldLabel}>Mobile number</Text>
+                      <View style={styles.phoneRow}>
+                        <View style={styles.prefix}>
+                          <Text style={[styles.prefixText, weight(700)]}>IN +91</Text>
+                        </View>
+                        <View style={styles.phoneInputWrap}>
+                          <TextInput
+                            value={auth.loginPhone}
+                            onChangeText={auth.setLoginPhone}
+                            keyboardType="number-pad"
+                            maxLength={10}
+                            placeholder="10-digit number"
+                            placeholderTextColor={colors.inkMuted}
+                            style={styles.input}
+                            testID="signup-phone"
+                          />
+                        </View>
+                      </View>
+                      <Text style={[styles.fieldLabel, styles.fieldLabelSpaced]}>Email address</Text>
+                      <TextInput
+                        value={auth.loginEmail}
+                        onChangeText={auth.setLoginEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholder="you@example.com"
+                        placeholderTextColor={colors.inkMuted}
+                        style={styles.input}
+                        testID="signup-email"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.fieldLabel}>{fieldLabel}</Text>
+                      {isEmail ? (
                         <TextInput
-                          value={auth.loginPhone}
-                          onChangeText={auth.setLoginPhone}
-                          keyboardType="number-pad"
-                          maxLength={10}
-                          placeholder="10-digit number"
+                          value={auth.loginEmail}
+                          onChangeText={auth.setLoginEmail}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          placeholder="you@example.com"
                           placeholderTextColor={colors.inkMuted}
                           style={styles.input}
                         />
-                      </View>
-                    </View>
+                      ) : (
+                        <View style={styles.phoneRow}>
+                          <View style={styles.prefix}>
+                            <Text style={[styles.prefixText, weight(700)]}>IN +91</Text>
+                          </View>
+                          <View style={styles.phoneInputWrap}>
+                            <TextInput
+                              value={auth.loginPhone}
+                              onChangeText={auth.setLoginPhone}
+                              keyboardType="number-pad"
+                              maxLength={10}
+                              placeholder="10-digit number"
+                              placeholderTextColor={colors.inkMuted}
+                              style={styles.input}
+                            />
+                          </View>
+                        </View>
+                      )}
+                    </>
                   )}
 
                   {auth.loginNotFound ? (
@@ -121,8 +167,9 @@ export const LoginScreen: React.FC = () => {
                   ) : null}
                   {auth.accountExists ? (
                     <Text style={styles.notFound}>
-                      An account already exists with this {isEmail ? 'email' : 'phone number'}. Please log
-                      in to continue.
+                      An account already exists with this{' '}
+                      {isSignup || isEmail ? 'phone or email' : 'phone number'}. Please log in to
+                      continue.
                     </Text>
                   ) : null}
 
@@ -141,27 +188,33 @@ export const LoginScreen: React.FC = () => {
                     </Checkbox>
                   </View>
 
-                  {auth.loginNotFound ? (
+                  {auth.loginNotFound && !isSignup ? (
                     <PrimaryButton
-                      label={auth.busy ? 'Sending…' : 'Create Account'}
-                      onPress={auth.continueAsSignup}
-                      disabled={!auth.contactOk || !auth.agree}
-                      loading={auth.busy}
+                      label="Continue to Create Account"
+                      onPress={() => auth.setIntent('signup')}
+                      disabled={false}
                       style={styles.sendBtn}
                       testID="create-account"
                     />
                   ) : auth.accountExists ? (
                     <PrimaryButton
-                      label={auth.busy ? 'Sending…' : 'Log in'}
-                      onPress={auth.continueAsLogin}
-                      disabled={!auth.contactOk || !auth.agree}
-                      loading={auth.busy}
+                      label="Switch to Log in"
+                      onPress={() => {
+                        auth.setIntent('login');
+                      }}
+                      disabled={false}
                       style={styles.sendBtn}
                       testID="login-existing"
                     />
                   ) : (
                     <PrimaryButton
-                      label={auth.busy ? 'Sending…' : 'Send OTP'}
+                      label={
+                        auth.busy
+                          ? 'Sending…'
+                          : isSignup
+                            ? 'Send email OTP'
+                            : 'Send OTP'
+                      }
                       onPress={auth.sendOtp}
                       disabled={!auth.contactOk || !auth.agree}
                       loading={auth.busy}
@@ -237,8 +290,15 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   cardLabel: { fontSize: 13, color: colors.inkSecondary, marginBottom: 10 },
+  signupHint: {
+    fontSize: 13,
+    color: colors.inkSecondary,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
   segmentWrap: { marginBottom: 18 },
   fieldLabel: { fontSize: 13, ...weight(700), marginBottom: 8, color: colors.ink },
+  fieldLabelSpaced: { marginTop: 14 },
   phoneRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   prefix: {
     minHeight: 50,

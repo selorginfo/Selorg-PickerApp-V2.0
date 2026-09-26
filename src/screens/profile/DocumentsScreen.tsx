@@ -18,19 +18,15 @@ import type { BadgeTone } from '../../types';
 
 type DocUiStatus = 'missing' | 'pending' | 'approved' | 'rejected';
 
-const ONBOARDING_CODES = new Set(['aadhar', 'pan']);
-
 function findLatest(docs: DocumentDto[], code: string): DocumentDto | undefined {
   return docs.find(d => normalizeKycDocType(d.type) === code);
 }
 
-function mapRowStatus(code: string, row: DocumentDto | undefined): DocUiStatus {
+function mapRowStatus(_code: string, row: DocumentDto | undefined): DocUiStatus {
   if (!row) return 'missing';
   const s = String(row.status || '').toLowerCase();
   if (s === 'rejected') return 'rejected';
   if (s === 'approved' || s === 'verified') return 'approved';
-  // Aadhaar / PAN from onboarding are already submitted — never ask to re-upload.
-  if (ONBOARDING_CODES.has(code) && (row.url || row.documentNumber)) return 'approved';
   if (s === 'pending' || row.url || row.documentNumber) return 'pending';
   return 'missing';
 }
@@ -40,7 +36,7 @@ function subtitle(code: string, status: DocUiStatus, row?: DocumentDto): string 
   if (num) return num;
   if (status === 'approved') return 'Verified';
   if (status === 'rejected') return 'Rejected — re-upload';
-  if (status === 'pending') return 'Uploaded · under review';
+  if (status === 'pending') return 'Uploaded · interview review';
   return DOC_LIST.find(d => d.code === code)?.sub || 'Not uploaded';
 }
 

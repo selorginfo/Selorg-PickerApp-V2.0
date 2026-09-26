@@ -114,7 +114,7 @@ const GateBody: React.FC<{
   statusMessage,
   verification,
   nextAction,
-  canReapply,
+  canReapply: _canReapply,
   onApprovedContinue,
   onReapply,
 }) => {
@@ -128,14 +128,14 @@ const GateBody: React.FC<{
           icon="clock"
           bg={colors.amberBg}
           tone={colors.amber}
-          title={pending ? 'Application pending' : 'Application under review'}>
+          title="Interview in progress">
           <Text style={styles.copy}>
             {pending ? (
-              'Documents are in final checks. This will complete automatically in a moment.'
+              'Documents are with the operations lead for interview review. You cannot open the home screen until approved.'
             ) : (
               <>
-                Your documents, KYC and face verification are being checked. This usually takes{' '}
-                <Text style={weight(700)}>a few seconds</Text>.
+                Your documents, KYC and face verification are under interview review. This usually takes{' '}
+                <Text style={weight(700)}>a short time</Text>. Stay on this screen — status updates automatically.
               </>
             )}
           </Text>
@@ -163,14 +163,16 @@ const GateBody: React.FC<{
   if (gate === 'rejected') {
     return (
       <View style={styles.center}>
-        <StatusHero icon="close" bg={colors.dangerBg} tone={colors.danger} title="Application rejected">
+        <StatusHero icon="close" bg={colors.dangerBg} tone={colors.danger} title="Interview rejected">
           <Text style={styles.copy}>
             {rejectionReason || 'No rejection reason was provided. Contact support for more information.'}
           </Text>
         </StatusHero>
-        {canReapply ? (
-          <PrimaryButton label="Re-apply" onPress={onReapply} style={styles.stackBtn} />
-        ) : null}
+        <PrimaryButton
+          label="Fix documents & re-apply"
+          onPress={onReapply}
+          style={styles.stackBtn}
+        />
         <OutlineButton label="Contact support" onPress={goToSupport} style={styles.fullBtn} />
       </View>
     );

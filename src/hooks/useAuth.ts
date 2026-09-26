@@ -12,7 +12,14 @@ import { resetTo, navigate, resetToNested } from '../navigation/navigationRef';
 import type { AuthIntent, LoginChannel } from '../types';
 
 const ACCOUNT_NOT_FOUND_CODES = new Set(['USER_NOT_FOUND', 'ACCOUNT_NOT_FOUND']);
-const ACCOUNT_EXISTS_CODES = new Set(['PHONE_EXISTS', 'EMAIL_EXISTS', 'USER_EXISTS']);
+const ACCOUNT_EXISTS_CODES = new Set([
+  'PHONE_EXISTS',
+  'EMAIL_EXISTS',
+  'USER_EXISTS',
+  'PHONE_ALREADY_REGISTERED',
+  'EMAIL_ALREADY_REGISTERED',
+  'PHONE_AND_EMAIL_ALREADY_REGISTERED',
+]);
 
 function toastErrorMessage(e: unknown, fallback: string): string {
   if (isApiError(e)) return e.message;
@@ -56,40 +63,70 @@ export function useAuth() {
   const [resending, setResending] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const contactOk = auth.channel === 'email' ? isEmail(auth.loginEmail) : isPhone10(auth.loginPhone);
+  const isSignup = auth.intent === 'signup';
+  const contactOk = isSignup
+    ? isPhone10(auth.loginPhone) && isEmail(auth.loginEmail)
+    : auth.channel === 'email'
+      ? isEmail(auth.loginEmail)
+      : isPhone10(auth.loginPhone);
   const canSend = contactOk && auth.agree && !auth.busy;
   const canVerify = isOtp4(auth.otp) && !auth.busy;
 
   const contact = auth.channel === 'email' ? auth.loginEmail : auth.loginPhone;
 
-  const otpDest =
-    auth.channel === 'email' ? auth.loginEmail || 'your email' : `+91 ${auth.loginPhone || ''}`;
-  const otpChannelLabel =
-    auth.channel === 'email' ? 'Email' : auth.channel === 'whatsapp' ? 'WhatsApp' : 'SMS';
+  const otpDest = isSignup
+    ? auth.loginEmail || 'your email'
+    : auth.channel === 'email'
+      ? auth.loginEmail || 'your email'
+      : `+91 ${auth.loginPhone || ''}`;
+  const otpChannelLabel = isSignup
+    ? 'Email'
+    : auth.channel === 'email'
+      ? 'Email'
+      : auth.channel === 'whatsapp'
+        ? 'WhatsApp'
+        : 'SMS';
 
   const sendOtp = useCallback(async (intentOverride?: AuthIntent) => {
     if (auth.busy) return;
-    if (auth.channel === 'email' && !isEmail(auth.loginEmail)) {
+    const intent = intentOverride ?? auth.intent;
+    const signup = intent === 'signup';
+
+    if (signup) {
+      if (!isPhone10(auth.loginPhone)) {
+        dispatch({ type: 'ui/setToast', value: 'Enter a 10-digit mobile number' });
+        return;
+      }
+      if (!isEmail(auth.loginEmail)) {
+        dispatch({ type: 'ui/setToast', value: 'Enter a valid email address' });
+        return;
+      }
+    } else if (auth.channel === 'email' && !isEmail(auth.loginEmail)) {
       dispatch({ type: 'ui/setToast', value: 'Enter a valid email address' });
       return;
-    }
-    if (auth.channel !== 'email' && !isPhone10(auth.loginPhone)) {
+    } else if (auth.channel !== 'email' && !isPhone10(auth.loginPhone)) {
       dispatch({ type: 'ui/setToast', value: 'Enter a 10-digit mobile number' });
       return;
     }
+
     if (!auth.agree) {
       dispatch({ type: 'ui/setToast', value: 'Please accept the Terms to continue' });
       return;
     }
-    const intent = intentOverride ?? auth.intent;
+
     dispatch({ type: 'auth/setBusy', value: true });
     try {
       await ensureReachableApiHost();
-      await authApi.sendOtp({
-        channel: auth.channel,
-        contact: auth.channel === 'email' ? auth.loginEmail : auth.loginPhone,
-        intent,
-      });
+      if (signup) {
+        await authApi.checkRegistration(auth.loginPhone, auth.loginEmail);
+        await authApi.sendRegistrationOtp(auth.loginPhone, auth.loginEmail);
+      } else {
+        await authApi.sendOtp({
+          channel: auth.channel,
+          contact: auth.channel === 'email' ? auth.loginEmail : auth.loginPhone,
+          intent: 'login',
+        });
+      }
       if (intentOverride && intentOverride !== auth.intent) {
         dispatch({ type: 'auth/setIntent', value: intentOverride });
       }
@@ -97,7 +134,7 @@ export function useAuth() {
       dispatch({ type: 'auth/setOtp', value: '' });
       dispatch({
         type: 'ui/setToast',
-        value: auth.channel === 'email' ? 'OTP sent to your email' : 'OTP sent via SMS',
+        value: signup || auth.channel === 'email' ? 'OTP sent to your email' : 'OTP sent via SMS',
       });
       navigate('Auth', { screen: 'Otp' });
     } catch (e) {
@@ -124,15 +161,26 @@ export function useAuth() {
       dispatch({ type: 'ui/setToast', value: 'Enter the 4-digit OTP' });
       return;
     }
+    if (auth.intent === 'signup') {
+      if (!isPhone10(auth.loginPhone) || !isEmail(auth.loginEmail)) {
+        dispatch({ type: 'ui/setToast', value: 'Phone and email are required to create an account' });
+        resetToNested('Auth', 'Login');
+        return;
+      }
+    }
     dispatch({ type: 'auth/setBusy', value: true });
     try {
       await ensureReachableApiHost();
-      const res = await authApi.verifyOtp({
-        channel: auth.channel,
-        contact: auth.channel === 'email' ? auth.loginEmail : auth.loginPhone,
-        otp: String(auth.otp || '').replace(/\D/g, '').slice(0, 4),
-        intent: auth.intent,
-      });
+      const otp = String(auth.otp || '').replace(/\D/g, '').slice(0, 4);
+      const res =
+        auth.intent === 'signup'
+          ? await authApi.verifyRegistrationOtp(auth.loginPhone, auth.loginEmail, otp)
+          : await authApi.verifyOtp({
+              channel: auth.channel,
+              contact: auth.channel === 'email' ? auth.loginEmail : auth.loginPhone,
+              otp,
+              intent: 'login',
+            });
       if (!res?.token) {
         dispatch({ type: 'ui/setToast', value: 'Login failed — no token returned' });
         return;
@@ -201,16 +249,23 @@ export function useAuth() {
     if (auth.resendIn > 0 || auth.busy || resending) return;
     setResending(true);
     try {
-      await authApi.resendOtp({
-        channel: auth.channel,
-        contact: auth.channel === 'email' ? auth.loginEmail : auth.loginPhone,
-        intent: auth.intent,
-      });
+      if (auth.intent === 'signup') {
+        await authApi.resendRegistrationOtp(auth.loginPhone, auth.loginEmail);
+      } else {
+        await authApi.resendOtp({
+          channel: auth.channel,
+          contact: auth.channel === 'email' ? auth.loginEmail : auth.loginPhone,
+          intent: 'login',
+        });
+      }
       dispatch({ type: 'auth/startResend' });
       dispatch({ type: 'auth/setOtp', value: '' });
       dispatch({
         type: 'ui/setToast',
-        value: auth.channel === 'email' ? 'OTP resent to your email' : 'OTP resent via SMS',
+        value:
+          auth.intent === 'signup' || auth.channel === 'email'
+            ? 'OTP resent to your email'
+            : 'OTP resent via SMS',
       });
     } catch (e) {
       dispatch({ type: 'ui/setToast', value: toastErrorMessage(e, 'Failed to resend OTP') });

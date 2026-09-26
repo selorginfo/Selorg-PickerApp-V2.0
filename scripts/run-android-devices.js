@@ -45,7 +45,7 @@ if (!devices.length) {
 }
 
 const assemble = spawnSync(
-  gradlew,
+  `"${gradlew}"`,
   ['assembleDebug', '-PreactNativeArchitectures=arm64-v8a,x86_64'],
   {
     cwd: path.join(root, 'android'),
@@ -62,7 +62,8 @@ if (!fs.existsSync(apk)) {
 let failed = 0;
 for (const id of devices) {
   console.log(`\nInstalling Selorg Picker on ${id}`);
-  const ins = spawnSync('adb', ['-s', id, 'install', '-r', '-t', apk], {
+  // Quote APK path: Windows shell:true splits on spaces in "Selorg Ai".
+  const ins = spawnSync('adb', ['-s', id, 'install', '-r', '-t', `"${apk}"`], {
     stdio: 'inherit',
     shell: true,
   });

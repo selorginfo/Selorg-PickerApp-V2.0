@@ -87,7 +87,11 @@ function record(tc) {
 
 async function api(method, pathName, { token, body, auth = true } = {}) {
   const url = `${PICKER}${pathName.startsWith("/") ? pathName : `/${pathName}`}`;
-  const headers = { Accept: "application/json" };
+  const headers = {
+    Accept: "application/json",
+    // Required by picker.auth — without this, send-otp returns CLIENT_REQUIRED 400
+    "x-selorg-client": "picker",
+  };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (auth && token) headers.Authorization = `Bearer ${token}`;
   const started = Date.now();
