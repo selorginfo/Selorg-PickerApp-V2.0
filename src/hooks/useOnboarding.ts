@@ -210,7 +210,7 @@ export function useOnboarding() {
     try {
       await onboardingApi.requestManagerOtp();
       dispatch({ type: 'ob/setMgrSent', value: true });
-      dispatch({ type: 'ui/setToast', value: 'OTP sent to your hub manager' });
+      dispatch({ type: 'ui/setToast', value: 'Ask your dark store manager for the HSD collection OTP' });
     } catch (e) {
       toastErr(e, 'Failed to send manager OTP');
     }
