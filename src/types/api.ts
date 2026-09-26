@@ -222,7 +222,6 @@ export interface MonthlySalaryDto {
 
 export interface PerformanceDto {
   cards: PerfCard[];
-  todaysEarnings: string;
   hub: string | null;
   weekBars: WeekBar[];
   home?: { rank: string; accuracy: number; speedLabel: string; speedPct: number };
@@ -250,7 +249,7 @@ export interface HomeSummaryDto {
   };
   balance: { available: string; pending: string; availableAmount: number };
   orders: { count: number; pending: number; syncedLabel: string; progress: number };
-  metrics: { todaysEarnings: string; incentivesToday: string };
+  metrics: { incentivesToday: string };
   performance: { rank: string; accuracy: number; speedLabel: string; speedPct: number };
   device: { collected: boolean; id: string | null; copy: string | null };
   unreadNotifications: number;

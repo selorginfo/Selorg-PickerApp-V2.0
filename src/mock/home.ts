@@ -6,7 +6,7 @@ export const mockHome = {
   shiftWindow: DUMMY_SHIFT_WINDOW,
   balance: { available: '₹4,850', pending: '₹1,200 pending' },
   orders: { count: 0, pending: 0, syncedLabel: 'Orders synced from HHD', progress: 0 },
-  metrics: { todaysEarnings: '₹720', incentivesToday: '₹150' },
+  metrics: { incentivesToday: '₹150' },
   performance: { rank: 'Top 12%', accuracy: 98, speedLabel: '42 items/hr', speedPct: 85 },
   collectDevice: { id: dummyDevice.id, copy: dummyDevice.copy },
 };
@@ -18,7 +18,7 @@ export function buildMockHomeSummary(): HomeSummaryDto {
     shift: getDummyShift(),
     balance: { available: '₹4,850', pending: '₹1,200 pending', availableAmount: 4850 },
     orders: { count: 0, pending: 0, syncedLabel: 'Orders synced from HHD', progress: 0 },
-    metrics: { todaysEarnings: '₹720', incentivesToday: '₹150' },
+    metrics: { incentivesToday: '₹150' },
     performance: { rank: 'Top 12%', accuracy: 98, speedLabel: '42 items/hr', speedPct: 85 },
     device: { ...dummyDevice },
     unreadNotifications: 2,

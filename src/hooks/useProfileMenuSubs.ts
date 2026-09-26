@@ -102,7 +102,6 @@ export function useProfileMenuSubs() {
       personal: 'Phone, address & emergency',
       workHistory: 'Attendance & shift records',
       salary: 'Monthly pay, leave & OT',
-      payouts: 'Earnings & payment history',
       support: 'Help, FAQs & notifications',
     };
 

@@ -14,9 +14,9 @@ export const Step8Bank: React.FC = () => {
   if (ob.bankSaved) {
     return (
       <View style={styles.card}>
-        <SavedSuccessBanner message="Bank account saved · you can edit it anytime from Payouts" />
+        <SavedSuccessBanner message="Bank account saved · you can edit it anytime from Bank Account" />
         <Text style={[styles.title, weight(800)]}>You're all set</Text>
-        <Text style={styles.sub}>Tap Enter app to start picking. Bank details stay on your payouts screen.</Text>
+        <Text style={styles.sub}>Tap Enter app to start picking. Bank details stay under Profile → Bank Account.</Text>
         <ReadonlyField label="Account holder" value={ob.bank.holder} />
         <ReadonlyField label="Bank name" value={ob.bank.bank} />
         <ReadonlyField label="Account number" value={ob.bank.acc} />
@@ -28,7 +28,7 @@ export const Step8Bank: React.FC = () => {
   return (
     <View style={styles.card}>
       <Text style={[styles.title, weight(800)]}>Bank account</Text>
-      <Text style={styles.sub}>Your monthly payouts are sent here.</Text>
+      <Text style={styles.sub}>Your monthly salary is sent here.</Text>
       <TextField
         label="Account holder name"
         value={ob.bank.holder}

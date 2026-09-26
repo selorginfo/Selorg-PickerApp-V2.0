@@ -29,7 +29,7 @@ export const PerformanceScreen: React.FC = () => {
                 <Skeleton key={i} height={120} width="48%" />
               ))}
             </View>
-            <Skeleton height={96} style={styles.mt14} />
+            <Skeleton height={160} style={styles.mt14} />
           </>
         )}
 
@@ -52,12 +52,6 @@ export const PerformanceScreen: React.FC = () => {
                 ))}
               </View>
             )}
-
-            <View style={styles.earnCard}>
-              <Text style={styles.earnLabel}>Today's Earnings</Text>
-              <Text style={[styles.earnValue, mono(34)]}>{p.todaysEarnings}</Text>
-              <Text style={styles.earnHub}>Hub: {p.hub || '—'}</Text>
-            </View>
 
             {weekBars.length > 0 && (
               <View style={styles.chartCard}>
@@ -107,10 +101,6 @@ const styles = StyleSheet.create({
   },
   tileValue: { marginTop: 12 },
   tileLabel: { fontSize: 12.5, color: colors.inkSecondary, ...weight(600) },
-  earnCard: { backgroundColor: colors.inkGreen, borderRadius: 18, padding: 20, marginBottom: 14 },
-  earnLabel: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
-  earnValue: { color: colors.gold, marginTop: 4 },
-  earnHub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
   chartCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 18, ...shadows.card },
   chartTitle: { fontSize: 15, marginBottom: 4 },
   chartSub: { fontSize: 12.5, color: colors.inkSecondary, marginBottom: 18 },

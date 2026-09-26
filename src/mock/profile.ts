@@ -20,7 +20,7 @@ export const profileMenuBase: ReadonlyArray<{
   /** Fallback when live data is still loading */
   subFallback: string;
   target: keyof MainStackParamList;
-  key: 'device' | 'personal' | 'workHistory' | 'salary' | 'documents' | 'bank' | 'payouts' | 'training' | 'support';
+  key: 'device' | 'personal' | 'workHistory' | 'salary' | 'documents' | 'bank' | 'training' | 'support';
 }> = [
   {
     key: 'device',
@@ -75,15 +75,6 @@ export const profileMenuBase: ReadonlyArray<{
     title: 'Bank Account',
     subFallback: 'Loading bank…',
     target: 'BankDetails',
-  },
-  {
-    key: 'payouts',
-    icon: 'wallet',
-    color: '#0E8F8A',
-    bg: '#E0F2F0',
-    title: 'Payouts',
-    subFallback: 'Earnings & payment history',
-    target: 'Payouts',
   },
   {
     key: 'training',

@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { MainStackParamList } from './navigationTypes';
 import { BottomTabNavigator } from './BottomTabNavigator';
-import { PayoutsScreen } from '../screens/payouts/PayoutsScreen';
 import { BankDetailsScreen } from '../screens/payouts/BankDetailsScreen';
 import { UpiDetailsScreen } from '../screens/payouts/UpiDetailsScreen';
 import { NotificationsScreen } from '../screens/notifications/NotificationsScreen';
@@ -24,7 +23,6 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
 export const MainNavigator: React.FC = () => (
   <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
     <Stack.Screen name="Tabs" component={BottomTabNavigator} />
-    <Stack.Screen name="Payouts" component={PayoutsScreen} />
     <Stack.Screen name="BankDetails" component={BankDetailsScreen} />
     <Stack.Screen name="UpiDetails" component={UpiDetailsScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />

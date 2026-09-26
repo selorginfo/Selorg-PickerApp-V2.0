@@ -269,25 +269,6 @@ export const HomeScreen: React.FC = () => {
               )}
             </View>
 
-            <Pressable style={styles.balanceCard} onPress={() => navigation.navigate('Payouts')}>
-              <View style={styles.balanceTop}>
-                <View style={styles.balanceLeft}>
-                  <View style={styles.balanceIcon}>
-                    <Icon name="wallet" size={22} color={colors.white} strokeWidth={1.8} />
-                  </View>
-                  <View style={styles.flex1}>
-                    <Text style={styles.balanceLabel}>Available Balance</Text>
-                    <Text style={[styles.balanceAmount, mono(24)]}>{home.balance?.available || '₹0'}</Text>
-                  </View>
-                </View>
-                <Icon name="chevronRight" size={22} color="rgba(255,255,255,0.8)" strokeWidth={2} />
-              </View>
-              <View style={styles.balanceFooter}>
-                <Text style={styles.balancePending}>{home.balance?.pending || '₹0 pending'}</Text>
-                <Text style={[styles.balanceCta, weight(700)]}>View payouts</Text>
-              </View>
-            </Pressable>
-
             <Pressable
               style={styles.ordersCard}
               onPress={() => navigation.navigate('AssignedWork')}
@@ -310,21 +291,12 @@ export const HomeScreen: React.FC = () => {
               <Icon name="chevronRight" size={20} color={colors.inkMuted2} strokeWidth={2} />
             </Pressable>
 
-            <View style={styles.row12}>
-              <View style={styles.metricTile}>
-                <View style={[styles.metricIcon, { backgroundColor: colors.amberBg }]}>
-                  <Icon name="dollar" size={22} color={colors.amber} strokeWidth={1.8} />
-                </View>
-                <Text style={[styles.metricValue, mono(24)]}>{home.metrics?.todaysEarnings || '₹0'}</Text>
-                <Text style={styles.metricLabel}>Today's Earnings</Text>
+            <View style={styles.metricTile}>
+              <View style={[styles.metricIcon, { backgroundColor: colors.primary }]}>
+                <Icon name="zap" size={22} color={colors.white} />
               </View>
-              <View style={styles.metricTile}>
-                <View style={[styles.metricIcon, { backgroundColor: colors.primary }]}>
-                  <Icon name="zap" size={22} color={colors.white} />
-                </View>
-                <Text style={[styles.metricValue, mono(24)]}>{home.metrics?.incentivesToday || '₹0'}</Text>
-                <Text style={styles.metricLabel}>Incentives Today</Text>
-              </View>
+              <Text style={[styles.metricValue, mono(24)]}>{home.metrics?.incentivesToday || '₹0'}</Text>
+              <Text style={styles.metricLabel}>Incentives Today</Text>
             </View>
 
             <View style={styles.perfCard}>
@@ -393,16 +365,6 @@ const styles = StyleSheet.create({
   hubFooter: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.borderSoft },
   hubFooterText: { fontSize: 12, color: colors.inkMuted, textAlign: 'center', ...weight(600) },
 
-  balanceCard: { backgroundColor: colors.inkGreen, borderRadius: 18, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 12, marginBottom: 14 },
-  balanceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  balanceLeft: { flexDirection: 'row', alignItems: 'center', gap: 13, flex: 1 },
-  balanceIcon: { width: 46, height: 46, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
-  balanceLabel: { fontSize: 12.5, color: 'rgba(255,255,255,0.8)', ...weight(600) },
-  balanceAmount: { color: colors.gold },
-  balanceFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)', paddingTop: 10 },
-  balancePending: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
-  balanceCta: { fontSize: 12.5, color: colors.gold },
-
   ordersCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 16, marginBottom: 14, ...shadows.card },
   ordersIcon: { width: 54, height: 54, borderRadius: 14, backgroundColor: colors.tealBg, alignItems: 'center', justifyContent: 'center' },
   ordersTop: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
@@ -411,7 +373,15 @@ const styles = StyleSheet.create({
   ordersPending: { marginLeft: 'auto', fontSize: 13, color: colors.amber },
   ordersSync: { fontSize: 12, color: colors.inkSecondary, marginVertical: 4 },
 
-  metricTile: { flex: 1, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 15, ...shadows.card },
+  metricTile: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 14,
+    ...shadows.card,
+  },
   metricIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   metricValue: {},
   metricLabel: { fontSize: 12, color: colors.inkSecondary, ...weight(600) },

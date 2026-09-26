@@ -272,7 +272,6 @@ async function loginViaUi({ expectMain = true } = {}) {
       "Performance",
       "Profile",
       "Collect your device",
-      "Available Balance",
       "Today's Shift",
       "Complete your profile",
       "Application under review",
@@ -356,7 +355,7 @@ async function openProfileMenu(title) {
     "Work History": "profile-menu-workHistory",
     Documents: "profile-menu-documents",
     "Bank Account": "profile-menu-bank",
-    Payouts: "profile-menu-payouts",
+    Salary: "profile-menu-salary",
     Training: "profile-menu-training",
     "Support & Settings": "profile-menu-support",
   };
@@ -640,14 +639,14 @@ async function testHomeUi() {
     textsInclude(d.nodes, /Shift Active/i) ||
     textsInclude(d.nodes, /CHECK OUT/i);
   const hasOrders = textsInclude(d.nodes, /orders/i);
-  const hasBalance = textsInclude(d.nodes, /Available Balance|View payouts|₹/i);
+  const hasIncentives = textsInclude(d.nodes, /Incentives Today|₹/i);
   record({
     id: "UI-HOME-01",
     area: "Home",
-    action: "Home dashboard renders picker greeting + shift + orders + balance",
+    action: "Home dashboard renders picker greeting + shift + orders",
     status: hasHi && hasShift ? "PASS" : "FAIL",
     expected: "Hi + shift controls from live /home/summary",
-    actual: `hi=${hasHi} shift=${hasShift} orders=${hasOrders} balance=${hasBalance} texts=${visibleTexts(d.nodes).slice(0, 25).join(" | ")}`,
+    actual: `hi=${hasHi} shift=${hasShift} orders=${hasOrders} incentives=${hasIncentives} texts=${visibleTexts(d.nodes).slice(0, 25).join(" | ")}`,
     severity: "Critical",
   });
 
@@ -713,31 +712,6 @@ async function testHomeUi() {
       actual: visibleTexts(n.nodes).slice(0, 15).join(" | "),
       severity: "Medium",
     });
-  }
-
-  // Payouts via balance card
-  const home2 = dumpUi("home2");
-  if (findByText(home2.nodes, "View payouts", { exact: false }).length || findByText(home2.nodes, "Available Balance", { exact: false }).length) {
-    await tapText(findByText(home2.nodes, "View payouts", { exact: false }).length ? "View payouts" : "Available Balance", {
-      exact: false,
-    });
-    await sleep(1200);
-    const p = dumpUi("payouts");
-    if (textsInclude(p.nodes, /Payout|Withdraw|Transaction|Bank|UPI/i)) {
-      discovery.screens.push("Payouts");
-      screenshot("payouts");
-      record({
-        id: "UI-PAY-01",
-        area: "Payouts",
-        action: "Open payouts from home balance",
-        status: "PASS",
-        expected: "Payouts screen from live wallet APIs",
-        actual: visibleTexts(p.nodes).slice(0, 15).join(" | "),
-        severity: "Medium",
-      });
-      pressBack();
-      await sleep(700);
-    }
   }
 
   // Assigned work (read-only HHD status)
@@ -1078,7 +1052,7 @@ async function testProfileAndMenus(token) {
     ["Work History", "WorkHistory", /Work History|Present|Overtime|Absent|Half/i],
     ["Documents", "Documents", /Document|Aadhaar|PAN|Upload/i],
     ["Bank Account", "BankDetails", /Bank|IFSC|Account|Verified|holder/i],
-    ["Payouts", "Payouts", /Payout|Withdraw|Transaction|Available/i],
+    ["Salary", "Salary", /Salary|Leave|OT|Overtime|Month|Pay/i],
     ["Training", "Training", /Training|module|Watch|progress/i],
     ["Support & Settings", "SupportSettings", /Settings|Notifications|Language|FAQ|Logout|Get help/i],
   ];

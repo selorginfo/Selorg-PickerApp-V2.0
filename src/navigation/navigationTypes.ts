@@ -27,7 +27,6 @@ export type MainTabParamList = {
 
 export type MainStackParamList = {
   Tabs: NavigatorScreenParams<MainTabParamList>;
-  Payouts: undefined;
   BankDetails: undefined;
   UpiDetails: undefined;
   Notifications: undefined;

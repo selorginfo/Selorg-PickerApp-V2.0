@@ -7,7 +7,6 @@ export const performanceApi = {
     if (config.USE_MOCKS) {
       return mockResponse<PerformanceDto>({
         cards: [],
-        todaysEarnings: '₹0',
         hub: null,
         weekBars: [],
       });
@@ -18,7 +17,6 @@ export const performanceApi = {
     if (config.USE_MOCKS) {
       return mockResponse<PerformanceDto>({
         cards: [],
-        todaysEarnings: '₹0',
         hub: null,
         weekBars: [],
       });

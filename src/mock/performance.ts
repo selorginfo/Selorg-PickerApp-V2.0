@@ -8,7 +8,6 @@ export const mockPerformance = {
     { icon: 'zap', color: colors.amber, bg: colors.amberBg, value: '42', label: 'Speed Score' },
     { icon: 'trophy', color: colors.primary, bg: colors.primarySoftBg, value: 'Top 12%', label: 'Performance' },
   ] as PerfCard[],
-  todaysEarnings: '₹720',
   hub: 'Indiranagar Darkstore',
   weekBars: [
     { d: 'Mon', pct: 55, highlight: false },

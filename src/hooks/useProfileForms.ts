@@ -3,7 +3,7 @@ import { useStore } from '../store/AppStore';
 import { computeFieldError, last10Digits } from '../utils/validators';
 import { normalizePickerGender } from '../utils/gender';
 import { formatInPhone, resolveAuthContact, type AuthContact } from '../utils/authContact';
-import { goBack, goBackOrToMain } from '../navigation/navigationRef';
+import { goBack } from '../navigation/navigationRef';
 import { profileApi } from '../services/api/profileApi';
 import { ApiError } from '../services/api/client';
 import type { ProfileFormSection } from '../store/actions';
@@ -222,7 +222,7 @@ export function useProfileForms() {
   const save = useCallback(
     async (
       section: ProfileFormSection,
-      options?: { navigateOnSuccess?: 'profile' | 'payouts' | false },
+      options?: { navigateOnSuccess?: 'profile' | false },
     ) => {
       if (saving) return false;
       const navigateOnSuccess = options?.navigateOnSuccess ?? 'profile';
@@ -284,8 +284,7 @@ export function useProfileForms() {
           applyProfile(saved as Awaited<ReturnType<typeof profileApi.getProfile>>);
         }
         dispatch({ type: 'ui/setToast', value: 'Changes saved' });
-        if (navigateOnSuccess === 'payouts') goBackOrToMain('Payouts');
-        else if (navigateOnSuccess === 'profile') goBack();
+        if (navigateOnSuccess === 'profile') goBack();
         return true;
       } catch (e: unknown) {
         dispatch({

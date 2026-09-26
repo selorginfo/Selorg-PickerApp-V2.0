@@ -7,7 +7,7 @@ export const mockFaqs: Faq[] = [
   },
   {
     q: 'When do I get paid?',
-    a: 'Payouts are processed monthly on the 5th to your verified bank account. Track them under Profile → Payouts.',
+    a: 'Salary is calculated monthly and paid on the 5th to your verified bank account. Track it under Profile → Salary.',
   },
   {
     q: 'What if my HHD device stops working?',
