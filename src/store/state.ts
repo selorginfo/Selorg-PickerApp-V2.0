@@ -140,7 +140,7 @@ export const initialState: AppState = {
     bankSaved: false,
   },
   shift: { step: 'none', active: false, elapsed: 0, resendIn: 0 },
-  attendance: { tab: 'details' },
+  attendance: { tab: 'shift' },
   settings: { push: true, shiftRem: true, payout: true, incentive: false, sound: true, lang: 'en' },
   wallet: { wdSheet: false, wdAmount: '', wdBank: '', wdKey: null, txNonce: 0 },
   support: {

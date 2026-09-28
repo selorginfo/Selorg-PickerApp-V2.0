@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/common/Screen';
 import { OfflineBanner } from '../../components/common/OfflineBanner';
 import { ProgressRing } from '../../components/common/ProgressRing';
@@ -10,11 +10,15 @@ import { KeyValueRow } from '../../components/lists/KeyValueRow';
 import { Icon } from '../../components/icons/Icon';
 import { colors, weight, mono, shadows } from '../../theme';
 import { useAttendance } from '../../hooks/useAttendance';
+import { useAttendanceShifts } from '../../hooks/useAttendanceShifts';
+import { useShift } from '../../hooks/useShift';
 import { useApiResource } from '../../hooks/useApiResource';
 import { attendanceApi } from '../../services/api/attendanceApi';
 import type { AttendanceTab, IconName } from '../../types';
+import type { ShiftSlotDto } from '../../types/api';
 
 const TABS: { key: AttendanceTab; label: string; icon: IconName }[] = [
+  { key: 'shift', label: 'Shift', icon: 'clock' },
   { key: 'details', label: 'Details', icon: 'file' },
   { key: 'ot', label: 'OT', icon: 'zap' },
   { key: 'history', label: 'History', icon: 'cal' },
@@ -28,8 +32,101 @@ const MonthPager: React.FC<{ month: string }> = ({ month }) => (
   </View>
 );
 
+function shiftStatusLabel(slot: ShiftSlotDto): string {
+  if (slot.assignmentStatus === 'STARTED') return 'On Shift';
+  if (slot.booked || slot.isBookedByMe) return 'Booked';
+  if (slot.status === 'full' || slot.remainingSlots <= 0) return 'Shift Full';
+  return 'Available';
+}
+
+const ShiftCard: React.FC<{
+  slot: ShiftSlotDto;
+  busy: boolean;
+  shiftActive: boolean;
+  onBook: () => void;
+  onStart: () => void;
+}> = ({ slot, busy, shiftActive, onBook, onStart }) => {
+  const isFull = slot.status === 'full' || slot.remainingSlots <= 0;
+  const isBooked = Boolean(slot.booked || slot.isBookedByMe);
+  const isStarted = slot.assignmentStatus === 'STARTED' || (isBooked && shiftActive);
+  const canStart = Boolean(slot.canStart) && !isStarted && !shiftActive;
+
+  return (
+    <View style={styles.shiftCard}>
+      <View style={styles.shiftHeader}>
+        <View style={styles.flex1}>
+          <Text style={[styles.shiftName, weight(800)]}>{slot.label || 'Shift'}</Text>
+          <Text style={styles.shiftHub}>{slot.hubName || slot.hubId || 'Dark Store'}</Text>
+        </View>
+        <View style={[styles.shiftStatusPill, isFull && !isBooked && styles.shiftStatusFull]}>
+          <Text style={[styles.shiftStatusText, weight(700)]}>{shiftStatusLabel(slot)}</Text>
+        </View>
+      </View>
+
+      <View style={styles.shiftMeta}>
+        <Text style={styles.shiftMetaLine}>Date · {slot.date || '—'}</Text>
+        <Text style={styles.shiftMetaLine}>{slot.timeDisplay || `${slot.startTime} – ${slot.endTime}`}</Text>
+        <Text style={styles.shiftMetaLine}>
+          Break · {slot.breakLabel || (slot.breakDuration != null ? `${slot.breakDuration} min` : '—')}
+        </Text>
+        <Text style={[styles.shiftMetaLine, weight(700)]}>
+          {slot.bookedCount} / {slot.capacity} slots booked
+        </Text>
+      </View>
+
+      {isFull && !isBooked ? (
+        <View style={styles.shiftFullBox}>
+          <Text style={[styles.shiftFullTitle, weight(800)]}>Shift Full</Text>
+          <Text style={styles.shiftFullSub}>This shift is already fully booked.</Text>
+        </View>
+      ) : null}
+
+      {isBooked && !isStarted ? (
+        <View style={styles.shiftActions}>
+          <Pressable
+            style={[styles.primaryBtn, (!canStart || busy) && styles.btnDisabled]}
+            disabled={!canStart || busy}
+            onPress={onStart}
+          >
+            {busy ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Text style={[styles.primaryBtnText, weight(800)]}>
+                {canStart ? 'Start My Shift' : 'Start My Shift'}
+              </Text>
+            )}
+          </Pressable>
+          {!canStart ? (
+            <Text style={styles.startHint}>
+              {slot.canStartReason || 'Available at the scheduled start time.'}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {isStarted ? (
+        <View style={styles.onShiftBox}>
+          <Text style={[styles.onShiftText, weight(800)]}>Shift Started · On Shift / Online</Text>
+        </View>
+      ) : null}
+
+      {!isBooked && !isFull ? (
+        <Pressable style={[styles.primaryBtn, busy && styles.btnDisabled]} disabled={busy} onPress={onBook}>
+          {busy ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={[styles.primaryBtnText, weight(800)]}>Book Shift</Text>
+          )}
+        </Pressable>
+      ) : null}
+    </View>
+  );
+};
+
 export const AttendanceScreen: React.FC = () => {
   const att = useAttendance();
+  const shiftHook = useShift();
+  const shifts = useAttendanceShifts();
   const { data: a, loading, error, refetch } = useApiResource(() => attendanceApi.getSummary());
   const hours = att.liveHours ?? a?.present?.hoursToday ?? '—';
   const detailsRows = a?.detailsRows ?? [];
@@ -42,14 +139,16 @@ export const AttendanceScreen: React.FC = () => {
       <OfflineBanner />
       <View style={styles.header}>
         <Text style={[styles.title, weight(800)]}>Attendance</Text>
-        <Text style={styles.subtitle}>Track your shifts, OT &amp; history</Text>
+        <Text style={styles.subtitle}>Book shifts, track OT &amp; history</Text>
         <View style={styles.tabRow}>
           {TABS.map(t => {
             const active = att.tab === t.key;
             return (
               <Pressable key={t.key} style={[styles.tab, active && styles.tabActive]} onPress={() => att.setTab(t.key)}>
                 <Icon name={t.icon} size={18} color={active ? colors.primary : colors.inkMuted2} strokeWidth={1.9} />
-                <Text style={[styles.tabLabel, weight(700), { color: active ? colors.primary : colors.inkMuted2 }]}>{t.label}</Text>
+                <Text style={[styles.tabLabel, weight(700), { color: active ? colors.primary : colors.inkMuted2 }]}>
+                  {t.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -57,16 +156,48 @@ export const AttendanceScreen: React.FC = () => {
       </View>
 
       <View style={styles.body}>
-        {loading && !a && (
+        {att.tab === 'shift' && (
+          <View>
+            {shifts.loading && !shifts.slots.length ? (
+              <>
+                <Skeleton height={140} style={styles.mb16} />
+                <Skeleton height={140} />
+              </>
+            ) : null}
+            {shifts.error && !shifts.slots.length ? (
+              <ErrorState title={shifts.error} onRetry={shifts.refresh} />
+            ) : null}
+            {!shifts.loading && !shifts.error && !shifts.slots.length ? (
+              <EmptyState
+                icon="clock"
+                title="No shifts available"
+                subtitle="Shifts for your Dark Store will appear here"
+                compact
+              />
+            ) : null}
+            {shifts.slots.map(slot => (
+              <ShiftCard
+                key={slot.id}
+                slot={slot}
+                busy={shifts.busyId === slot.id || shiftHook.busy}
+                shiftActive={shiftHook.active}
+                onBook={() => void shifts.bookShift(slot.id)}
+                onStart={() => void shiftHook.startShift()}
+              />
+            ))}
+          </View>
+        )}
+
+        {att.tab !== 'shift' && loading && !a && (
           <>
             <Skeleton height={140} style={styles.mb16} />
             <Skeleton height={180} />
           </>
         )}
 
-        {error && !a && <ErrorState title="Couldn't load attendance" onRetry={refetch} />}
+        {att.tab !== 'shift' && error && !a && <ErrorState title="Couldn't load attendance" onRetry={refetch} />}
 
-        {a && (
+        {att.tab !== 'shift' && a && (
           <>
             <View style={styles.presentCard}>
               <View style={styles.flex1}>
@@ -100,7 +231,9 @@ export const AttendanceScreen: React.FC = () => {
                   value={
                     <View style={styles.statusPill}>
                       <View style={styles.presentDot} />
-                      <Text style={[styles.statusText, weight(700)]}>Active</Text>
+                      <Text style={[styles.statusText, weight(700)]}>
+                        {shiftHook.active ? 'On Shift' : 'Active'}
+                      </Text>
                     </View>
                   }
                 />
@@ -159,14 +292,18 @@ export const AttendanceScreen: React.FC = () => {
                 <View style={styles.calCard}>
                   <View style={styles.dowRow}>
                     {dow.map((d, i) => (
-                      <Text key={i} style={styles.dow}>{d}</Text>
+                      <Text key={i} style={styles.dow}>
+                        {d}
+                      </Text>
                     ))}
                   </View>
                   <View style={styles.calGrid}>
                     {cells.map((c, i) => (
                       <View key={i} style={styles.calCell}>
                         <View style={[styles.calCircle, c.selected && styles.calCircleSel]}>
-                          <Text style={[styles.calNum, weight(c.selected ? 700 : 500), c.selected && styles.calNumSel]}>{c.n}</Text>
+                          <Text style={[styles.calNum, weight(c.selected ? 700 : 500), c.selected && styles.calNumSel]}>
+                            {c.n}
+                          </Text>
                         </View>
                         <View
                           style={[
@@ -204,48 +341,149 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 24 },
   mb16: { marginBottom: 16 },
   flex1: { flex: 1 },
-  header: { backgroundColor: colors.surface, paddingHorizontal: 20, paddingTop: 16, borderBottomWidth: 1, borderBottomColor: colors.borderSoft },
+  header: {
+    backgroundColor: colors.surface,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSoft,
+  },
   title: { fontSize: 20, marginBottom: 2 },
   subtitle: { fontSize: 12.5, color: colors.inkSecondary, marginBottom: 14 },
   tabRow: { flexDirection: 'row' },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 13, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 13,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
   tabActive: { borderBottomColor: colors.primary },
-  tabLabel: { fontSize: 13.5 },
+  tabLabel: { fontSize: 12.5 },
   body: { padding: 16 },
-  presentCard: { flexDirection: 'row', gap: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 18, marginBottom: 16, ...shadows.card },
+  presentCard: {
+    flexDirection: 'row',
+    gap: 14,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    ...shadows.card,
+  },
   presentRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   presentDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary },
   presentLabel: { fontSize: 16, color: colors.primary },
   presentWindow: { fontSize: 12.5, color: colors.inkSecondary, marginBottom: 8 },
   punchRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 },
-  punchTick: { width: 16, height: 16, borderRadius: 8, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  punchTick: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   punchTickText: { fontSize: 9, color: colors.white, fontWeight: '800' },
   punchText: { fontSize: 12.5, color: colors.primary },
   hoursLabel: { fontSize: 11.5, color: colors.inkMuted, marginBottom: 3 },
-  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingHorizontal: 18, paddingVertical: 6, ...shadows.card },
+  card: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+    ...shadows.card,
+  },
   statusPill: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusText: { fontSize: 13.5, color: colors.primary },
-  pager: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, ...shadows.card },
+  pager: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+    ...shadows.card,
+  },
   pagerArrow: { fontSize: 22, color: colors.inkMuted2 },
   pagerMonth: { fontSize: 15 },
-  otSummary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.primarySoftBg, borderRadius: 16, padding: 18, marginBottom: 18 },
+  otSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.primarySoftBg,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 18,
+  },
   otSmall: { fontSize: 13, color: colors.primaryDark, marginBottom: 6 },
   otRate: { fontSize: 12.5, color: colors.primaryDark, marginTop: 8 },
-  otIcon: { width: 60, height: 60, borderRadius: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  otIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   weeklyTitle: { fontSize: 14, marginBottom: 12 },
-  weekRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 16, marginBottom: 10, ...shadows.card },
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    ...shadows.card,
+  },
   weekName: { fontSize: 14 },
   weekRange: { fontSize: 12, color: colors.inkMuted },
   weekRight: { alignItems: 'flex-end' },
   weekHrs: { fontSize: 16, color: colors.primary },
   weekAmt: { fontSize: 12, color: colors.inkMuted },
-  otEarnings: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.primarySoftBg, borderRadius: 16, padding: 18, marginTop: 8 },
-  otEarningsIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  calCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 16, marginBottom: 16, ...shadows.card },
+  otEarnings: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: colors.primarySoftBg,
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 8,
+  },
+  otEarningsIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    ...shadows.card,
+  },
   dowRow: { flexDirection: 'row', marginBottom: 8 },
   dow: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '700', color: colors.inkMuted },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  calCell: { width: `${100 / 7}%`, minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
+  calCell: { width: `${100 / 7}%` as any, minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
   calCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   calCircleSel: { backgroundColor: colors.primary },
   calNum: { fontSize: 12.5, color: colors.ink },
@@ -255,4 +493,53 @@ const styles = StyleSheet.create({
   historyTile: { flex: 1, borderRadius: 16, padding: 18 },
   historyNum: { fontSize: 30, fontWeight: '800' },
   historyLabel: { fontSize: 13 },
+  shiftCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    ...shadows.card,
+  },
+  shiftHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
+  shiftName: { fontSize: 16 },
+  shiftHub: { fontSize: 12.5, color: colors.inkSecondary, marginTop: 2 },
+  shiftStatusPill: {
+    backgroundColor: colors.primarySoftBg,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  shiftStatusFull: { backgroundColor: colors.amberBg },
+  shiftStatusText: { fontSize: 11.5, color: colors.primaryDeep },
+  shiftMeta: { gap: 4, marginBottom: 14 },
+  shiftMetaLine: { fontSize: 12.5, color: colors.inkSecondary },
+  shiftFullBox: {
+    backgroundColor: colors.amberBg,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  shiftFullTitle: { fontSize: 13.5, color: colors.amberText2 },
+  shiftFullSub: { fontSize: 12, color: colors.amberText, marginTop: 2 },
+  shiftActions: { gap: 8 },
+  startHint: { fontSize: 12, color: colors.inkMuted, textAlign: 'center' },
+  onShiftBox: {
+    backgroundColor: colors.primarySoftBg,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  onShiftText: { fontSize: 13, color: colors.primaryDeep },
+  primaryBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  primaryBtnText: { color: colors.white, fontSize: 14 },
+  btnDisabled: { opacity: 0.45 },
 });

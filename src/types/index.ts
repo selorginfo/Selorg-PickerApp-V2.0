@@ -122,7 +122,7 @@ export interface TrainingModule {
 
 // ---- shift / attendance ----
 export type ShiftStep = 'none' | 'location' | 'identity' | 'face' | 'fingerprint' | 'success';
-export type AttendanceTab = 'details' | 'ot' | 'history';
+export type AttendanceTab = 'shift' | 'details' | 'ot' | 'history';
 
 export interface KeyValue {
   k: string;

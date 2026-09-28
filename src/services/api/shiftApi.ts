@@ -1,6 +1,6 @@
 import { config } from '../../constants/config';
 import { request, mockResponse } from './client';
-import type { ShiftReadinessDto } from '../../types/api';
+import type { ShiftReadinessDto, ShiftSlotDto } from '../../types/api';
 
 let lastShiftReadiness: ShiftReadinessDto | null = null;
 
@@ -8,22 +8,55 @@ export function getLastShiftReadiness(): ShiftReadinessDto | null {
   return lastShiftReadiness;
 }
 
+function asSlotList(raw: unknown): ShiftSlotDto[] {
+  if (Array.isArray(raw)) return raw as ShiftSlotDto[];
+  if (raw && typeof raw === 'object') {
+    const r = raw as Record<string, unknown>;
+    for (const k of ['data', 'items', 'shifts', 'list']) {
+      if (Array.isArray(r[k])) return r[k] as ShiftSlotDto[];
+    }
+  }
+  return [];
+}
+
 export const shiftApi = {
-  listAvailable(query?: { warehouseKey?: string }) {
+  listAvailable(query?: { warehouseKey?: string; date?: string }) {
     if (config.USE_MOCKS) {
-      return mockResponse([
-        { id: 'dummy-fullday', title: 'Full day · 12:00 AM – 11:59 PM', sub: 'Dummy 24h shift' },
+      return mockResponse<ShiftSlotDto[]>([
+        {
+          id: 'dummy-fullday',
+          label: 'Full day',
+          date: new Date().toISOString().slice(0, 10),
+          startTime: '00:00',
+          endTime: '23:59',
+          timeDisplay: '12:00 AM – 11:59 PM',
+          capacity: 5,
+          bookedCount: 0,
+          remainingSlots: 5,
+          booked: false,
+          status: 'open',
+          hubName: 'Demo Hub',
+          breakDuration: 30,
+          canStart: false,
+          assignmentStatus: null,
+        },
       ]);
     }
-    return request<unknown[]>('/shifts/available', { query });
+    return request<ShiftSlotDto[]>('/shifts/available', { query }).then(asSlotList);
   },
   listMy() {
     if (config.USE_MOCKS) {
-      return mockResponse([
-        { id: 'dummy-fullday', title: 'Full day · 12:00 AM – 11:59 PM', sub: 'Dummy 24h shift' },
-      ]);
+      return mockResponse<ShiftSlotDto[]>([]);
     }
-    return request<unknown[]>('/shifts/my');
+    return request<unknown[]>('/shifts/my').then(raw => {
+      if (!Array.isArray(raw)) return [];
+      return raw.map((row: any) => {
+        if (row?.shift && typeof row.shift === 'object') {
+          return { ...row.shift, assignmentStatus: row.status, id: row.shift.id || row.shiftId } as ShiftSlotDto;
+        }
+        return row as ShiftSlotDto;
+      });
+    });
   },
   async readiness(query?: { lat?: number; lng?: number; accuracyM?: number }) {
     if (config.USE_MOCKS) {
@@ -33,6 +66,7 @@ export const shiftApi = {
         onSite: true,
         distanceM: 8,
         geofenceM: 150,
+        canStart: true,
       };
       lastShiftReadiness = mock;
       return mockResponse(mock);
@@ -46,6 +80,10 @@ export const shiftApi = {
   select(shiftId: string) {
     if (config.USE_MOCKS) return mockResponse({ ok: true });
     return request('/shifts/select', { method: 'POST', body: { shiftId } });
+  },
+  deselect(shiftId: string, reason?: string) {
+    if (config.USE_MOCKS) return mockResponse({ ok: true });
+    return request('/shifts/deselect', { method: 'POST', body: { shiftId, reason } });
   },
   start(payload?: { shiftId?: string; latitude?: number; longitude?: number }) {
     if (config.USE_MOCKS) {

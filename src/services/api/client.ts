@@ -49,9 +49,15 @@ function buildUrl(path: string, query?: RequestOptions['query']): string {
 
 function extractAppCode(parsed: unknown): string | undefined {
   if (!parsed || typeof parsed !== 'object') return undefined;
-  const p = parsed as { appCode?: unknown; error?: { appCode?: unknown } };
+  const p = parsed as {
+    appCode?: unknown;
+    code?: unknown;
+    error?: { appCode?: unknown; code?: unknown };
+  };
   if (typeof p.error?.appCode === 'string') return p.error.appCode;
+  if (typeof p.error?.code === 'string') return p.error.code;
   if (typeof p.appCode === 'string') return p.appCode;
+  if (typeof p.code === 'string' && Number.isNaN(Number(p.code))) return p.code;
   return undefined;
 }
 

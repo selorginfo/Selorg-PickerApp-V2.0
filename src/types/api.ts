@@ -265,6 +265,42 @@ export interface ShiftReadinessDto {
   hubLatitude?: number | null;
   hubLongitude?: number | null;
   blockers?: string[];
+  canStart?: boolean;
+  canStartReason?: string | null;
+  windowStartAt?: string | null;
+  windowEndAt?: string | null;
+  assignmentStatus?: string | null;
+  shiftId?: string | null;
+  shiftName?: string | null;
+  timeDisplay?: string | null;
+}
+
+export interface ShiftSlotDto {
+  id: string;
+  label: string;
+  title?: string;
+  sub?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timeDisplay: string;
+  capacity: number;
+  bookedCount: number;
+  remainingSlots: number;
+  booked: boolean;
+  isBookedByMe?: boolean;
+  status: 'open' | 'full' | 'closed' | 'started' | 'completed' | string;
+  hubId?: string | null;
+  hubName?: string | null;
+  breakDuration?: number;
+  breakLabel?: string;
+  workforceRole?: 'picker' | 'rider' | null;
+  isOvernight?: boolean;
+  windowStartAt?: string | null;
+  windowEndAt?: string | null;
+  canStart?: boolean;
+  canStartReason?: string | null;
+  assignmentStatus?: 'ASSIGNED' | 'STARTED' | 'COMPLETED' | null;
 }
 
 export interface BankAccountDto {
